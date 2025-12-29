@@ -74,13 +74,20 @@ document.addEventListener('DOMContentLoaded', function() {
     setInterval(autoSave, 5000); // 5초마다 자동 저장
     
     // 미리보기 스크롤을 맨 위로 설정 (공고 제목이 먼저 보이도록)
-    setTimeout(() => {
-        const previewScroll = document.querySelector('.preview-scroll');
-        if (previewScroll) {
-            previewScroll.scrollTop = 0;
-        }
-    }, 300);
+    // 즉시 실행 + 여러 시점에서 실행하여 확실하게 맨 위로 이동
+    scrollPreviewToTop();
+    setTimeout(scrollPreviewToTop, 100);
+    setTimeout(scrollPreviewToTop, 300);
+    setTimeout(scrollPreviewToTop, 500);
 });
+
+// 미리보기 패널을 맨 위로 스크롤하는 함수
+function scrollPreviewToTop() {
+    const previewScroll = document.querySelector('.preview-scroll');
+    if (previewScroll) {
+        previewScroll.scrollTop = 0;
+    }
+}
 
 // 미리보기 업데이트 함수
 function updatePreview(fieldId) {
