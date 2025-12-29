@@ -81,11 +81,13 @@ document.addEventListener('DOMContentLoaded', function() {
     setTimeout(scrollPreviewToTop, 500);
 });
 
-// 미리보기 패널을 맨 위로 스크롤하는 함수
+// 미리보기 패널을 공고 제목 섹션으로 스크롤하는 함수
 function scrollPreviewToTop() {
     const previewScroll = document.querySelector('.preview-scroll');
-    if (previewScroll) {
-        previewScroll.scrollTop = 0;
+    const topImage = document.querySelector('.top-image');
+    if (previewScroll && topImage) {
+        // 상단 이미지 높이만큼 스크롤하여 공고 제목이 화면 상단에 보이도록
+        previewScroll.scrollTop = topImage.offsetHeight;
     }
 }
 
