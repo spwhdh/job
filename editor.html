@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>채용공고 제작 도구</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&family=Nanum+Myeongjo:wght@400;700;800&family=Noto+Sans+KR:wght@100;300;400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="editor-style.css">
+</head>
+<body>
+    <!-- 플로팅 툴바 -->
+    <div class="floating-toolbar" id="floatingToolbar">
+        <select class="toolbar-select" id="fontFamily" title="폰트">
+            <option value="'Pretendard', sans-serif">Pretendard</option>
+            <option value="'Nanum Gothic', sans-serif">나눔고딕</option>
+            <option value="'Noto Sans KR', sans-serif">본고딕</option>
+            <option value="'Malgun Gothic', sans-serif">맑은고딕</option>
+            <option value="'Nanum Myeongjo', serif">나눔명조</option>
+        </select>
+        
+        <input type="number" class="toolbar-number-input" id="fontSize" min="10" max="40" value="16" title="크기">
+        
+        <div class="toolbar-separator"></div>
+        
+        <button class="toolbar-button" id="boldBtn" title="굵게 (Ctrl+B)"><strong>B</strong></button>
+        <button class="toolbar-button" id="underlineBtn" title="밑줄 (Ctrl+U)"><u>U</u></button>
+        
+        <div class="toolbar-separator"></div>
+        
+        <button class="toolbar-color-picker" id="textColorBtn" title="텍스트 색상">
+            <input type="color" id="textColor" value="#000000">
+        </button>
+        
+        <button class="color-none-btn" id="textColorNone" title="색상 제거">✕</button>
+        
+        <button class="toolbar-color-picker" id="bgColorBtn" title="배경색">
+            <input type="color" id="bgColor" value="#ffff00">
+        </button>
+        
+        <button class="color-none-btn" id="bgColorNone" title="배경색 제거">✕</button>
+    </div>
+
+    <div class="editor-container">
+        <!-- 왼쪽: 입력 폼 -->
+        <div class="input-panel">
+            <div class="panel-header">
+                <h1>📝 채용공고 작성</h1>
+                <div class="header-buttons">
+                    <button class="download-btn" onclick="downloadImage()">📥 이미지 다운로드</button>
+                    <button class="download-btn copy-link-btn" onclick="copyImageLink()">🔗 이미지 링크 복사</button>
+                </div>
+            </div>
+            
+            <div class="form-container">
+                <div class="form-section">
+                    <label>
+                        <span class="label-title">🖊️공고 제목</span>
+                    </label>
+                    <textarea id="job-title" rows="1" spellcheck="false" placeholder="예시: 개발자 인턴 채용"></textarea>
+                </div>
+
+                <div class="form-section">
+                    <label>
+                        <span class="label-title">✅이런분들에게 추천합니다</span>
+                    </label>
+                    <textarea id="recommend" rows="6" spellcheck="false" placeholder="예시:&#10;프론트엔드 개발 경험이 있는 분&#10;UI/UX에 관심이 많으신 분&#10;팀워크를 중요하게 생각하시는 분"></textarea>
+                </div>
+
+                <div class="form-section">
+                    <label>
+                        <span class="label-title">⚙️담당 업무</span>
+                    </label>
+                    <textarea id="duties" rows="6" spellcheck="false" placeholder="예시:&#10;웹 서비스 프론트엔드 개발&#10;React/Vue.js 기반 UI 컴포넌트 개발&#10;반응형 웹 디자인 구현&#10;API 연동 및 데이터 처리"></textarea>
+                </div>
+
+                <!-- 자격 요건 그룹 -->
+                <div class="form-section form-group-box">
+                    <div class="form-group-header">
+                        <span class="group-title">📋자격 요건</span>
+                    </div>
+                    
+                    <div class="form-group-item">
+                        <label>
+                            <span class="label-title">추가 설명 (선택사항)</span>
+                        </label>
+                        <textarea id="requirements-note" rows="6" spellcheck="false" placeholder="예시:&#10;핫셀러는 성공을 위해 누구보다 노력할 수 있는 분들을 위해&#10;인센티브, 지분 증여 등 성과에 따른 보상과 다양한 복지 혜택이 주어집니다.&#10;하지만 목표 달성을 위해 높은 업무 강도와 잦은 야근이 요구되며,&#10;꾸준한 직무 역량 개발이 필수적입니다."></textarea>
+                    </div>
+                    
+                    <div class="form-group-item">
+                        <label>
+                            <span class="label-title">필수 자격</span>
+                        </label>
+                        <textarea id="requirements" rows="6" spellcheck="false" placeholder="예시:&#10;컴퓨터공학 또는 관련 전공&#10;JavaScript, HTML, CSS 능숙한 사용 가능자&#10;React 또는 Vue.js 프레임워크 경험"></textarea>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <label>
+                        <span class="label-title">🌟우대 사항</span>
+                    </label>
+                    <textarea id="preferred" rows="6" spellcheck="false" placeholder="예시:&#10;TypeScript 사용 경험&#10;디자인 시스템 구축 경험&#10;오픈소스 프로젝트 기여 경험"></textarea>
+                </div>
+
+                <!-- 근무 조건 및 연봉 그룹 -->
+                <div class="form-section form-group-box">
+                    <div class="form-group-header">
+                        <span class="group-title">💼 근무 조건 및 연봉</span>
+                    </div>
+                    
+                    <div class="form-group-item">
+                        <label>
+                            <span class="label-title">근무 시간</span>
+                        </label>
+                        <textarea id="work-hours" rows="1" spellcheck="false" placeholder="예시: 오전 9시 30분 ~ 오후 6시 30분"></textarea>
+                    </div>
+                    
+                    <div class="form-group-item">
+                        <label>
+                            <span class="label-title">근무지</span>
+                        </label>
+                        <textarea id="work-location" rows="1" spellcheck="false" placeholder="예시: 서울특별시 동대문구 장한로6 605호"></textarea>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <label>
+                        <span class="label-title">⚠️유의사항</span>
+                    </label>
+                    <textarea id="additional-info" rows="2" spellcheck="false" placeholder="예시:&#10;- 포트폴리오 필수 첨부 (누락 시 서류 심사에서 자동 불합격)&#10;- 허위 사실이 발견되는 경우 채용이 취소될 수 있습니다."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- 오른쪽: 미리보기 -->
+        <div class="preview-panel">
+            <div class="preview-header">
+                <h2>👁️ 미리보기</h2>
+                <div class="zoom-controls">
+                    <button onclick="zoomOut()">🔍-</button>
+                    <span id="zoom-level">100%</span>
+                    <button onclick="zoomIn()">🔍+</button>
+                </div>
+            </div>
+            
+            <div class="preview-scroll">
+                <div class="preview-content" id="preview">
+                    <!-- 상단 고정 이미지 -->
+                    <div class="fixed-image top-image">
+                        <img src="jop top.png" alt="상단 이미지">
+                    </div>
+
+                    <!-- 공고 제목 -->
+                    <div class="job-title-section">
+                        <h1 class="job-title-text" id="preview-job-title" contenteditable="true" spellcheck="false">공고 제목을 입력하세요</h1>
+                    </div>
+
+                    <!-- 편집 가능한 컨텐츠 영역 -->
+                    <div class="editable-content">
+                        <!-- 이런분들에게 추천합니다 -->
+                        <section class="content-section recommend-section">
+                            <h2 class="section-title">이런분들에게 추천합니다</h2>
+                            <div class="section-content" id="preview-recommend">
+                                <p class="placeholder-text">내용을 입력해주세요</p>
+                            </div>
+                        </section>
+
+                        <!-- 담당 업무 -->
+                        <section class="content-section duties-section">
+                            <h2 class="section-title">담당 업무</h2>
+                            <div class="section-content" id="preview-duties">
+                                <p class="placeholder-text">내용을 입력해주세요</p>
+                            </div>
+                        </section>
+
+                        <!-- 자격 요건 (통합) -->
+                        <section class="content-section requirements-section">
+                            <h2 class="section-title">자격 요건</h2>
+                            
+                            <!-- 추가 설명 박스 -->
+                            <div class="requirements-note-box" id="preview-requirements-note">
+                                <!-- 추가 설명이 여기 표시됩니다 -->
+                            </div>
+                            
+                            <!-- 필수 자격 리스트 -->
+                            <div class="section-content" id="preview-requirements">
+                                <p class="placeholder-text">내용을 입력해주세요</p>
+                            </div>
+                        </section>
+
+                        <!-- 우대 사항 -->
+                        <section class="content-section preferred-section">
+                            <h2 class="section-title">우대 사항</h2>
+                            <div class="section-content" id="preview-preferred">
+                                <p class="placeholder-text">내용을 입력해주세요</p>
+                            </div>
+                        </section>
+
+                        <!-- 근무 조건 및 연봉 -->
+                        <section class="content-section conditions-section">
+                            <h2 class="section-title">근무 조건 및 연봉</h2>
+                            
+                            <!-- 근무 시간 -->
+                            <div class="condition-item">
+                                <span class="condition-label">근무시간</span>
+                                <span class="condition-value" id="preview-work-hours">오전 9시 30분 ~ 오후 6시 30분</span>
+                            </div>
+                            
+                            <!-- 근무지 -->
+                            <div class="condition-item">
+                                <span class="condition-label">근무지</span>
+                                <span class="condition-value" id="preview-work-location">서울특별시 동대문구 장한로6 605호</span>
+                            </div>
+                            
+                            <!-- 고정 연봉 박스 -->
+                            <div class="salary-box">
+                                <h3 class="salary-title">연봉 및 고용 형태</h3>
+                                <p class="salary-content">
+                                    <span class="highlight-text"><span class="blue-text">면접 후 협의</span> (직전연봉 or 희망연봉 필수 기재)</span>
+                                </p>
+                            </div>
+                        </section>
+                    </div>
+
+                    <!-- 하단 고정 이미지 -->
+                    <div class="fixed-image bottom-image">
+                        <img src="jop under.png" alt="하단 이미지">
+                    </div>
+
+                    <!-- 추가 안내사항 (하단 이미지 아래) -->
+                    <div class="editable-content no-top-padding">
+                        <div class="additional-info-text" id="preview-additional-info">
+                            <p class="placeholder-text">내용을 입력해주세요</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="editor-script.js"></script>
+</body>
+</html>
+

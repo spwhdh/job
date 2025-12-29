@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>채용공고 제작 도구</title>
+    <meta http-equiv="refresh" content="0; url=editor.html">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Malgun Gothic', sans-serif;
+            background: #F5F6F8;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 16px;
+            padding: 70px 60px;
+            max-width: 900px;
+            box-shadow: 0 2px 16px rgba(31, 35, 41, 0.08);
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 42px;
+            font-weight: 700;
+            color: #1F2329;
+            margin-bottom: 16px;
+            letter-spacing: -0.5px;
+        }
+        
+        .subtitle {
+            font-size: 17px;
+            color: #646A73;
+            margin-bottom: 48px;
+            font-weight: 400;
+        }
+        
+        .buttons {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 16px 36px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background: #3370FF;
+            color: white;
+            box-shadow: 0 2px 8px rgba(51, 112, 255, 0.2);
+        }
+        
+        .btn-primary:hover {
+            background: #2B5FE6;
+            box-shadow: 0 4px 12px rgba(51, 112, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: white;
+            color: #3370FF;
+            border: 1px solid #DEE0E3;
+        }
+        
+        .btn-secondary:hover {
+            background: #F5F6F8;
+            border-color: #3370FF;
+            transform: translateY(-2px);
+        }
+        
+        .features {
+            margin-top: 56px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            text-align: left;
+        }
+        
+        .feature {
+            padding: 24px;
+            background: #F8F9FA;
+            border-radius: 12px;
+            border: 1px solid #F0F1F3;
+            transition: all 0.2s ease;
+        }
+        
+        .feature:hover {
+            background: white;
+            border-color: #3370FF;
+            box-shadow: 0 4px 12px rgba(51, 112, 255, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .feature-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+        }
+        
+        .feature-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1F2329;
+            margin-bottom: 8px;
+        }
+        
+        .feature-desc {
+            font-size: 14px;
+            color: #646A73;
+            line-height: 1.6;
+        }
+        
+        .footer {
+            margin-top: 48px;
+            padding-top: 32px;
+            border-top: 1px solid #E5E6EB;
+            color: #646A73;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+        
+        .footer p {
+            margin-bottom: 8px;
+        }
+        
+        .footer strong {
+            color: #1F2329;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📋 채용공고 제작 도구</h1>
+        <p class="subtitle">간편하게 채용공고를 만들고 관리하세요</p>
+        
+        <div class="buttons">
+            <a href="editor.html" class="btn btn-primary">🚀 제작 시작하기</a>
+            <a href="사용설명서.md" class="btn btn-secondary" download>📖 사용 설명서</a>
+        </div>
+        
+        <div class="features">
+            <div class="feature">
+                <div class="feature-icon">⚡</div>
+                <div class="feature-title">실시간 미리보기</div>
+                <div class="feature-desc">입력하는 즉시 오른쪽에서 결과를 확인할 수 있습니다</div>
+            </div>
+            
+            <div class="feature">
+                <div class="feature-icon">💾</div>
+                <div class="feature-title">자동 저장</div>
+                <div class="feature-desc">5초마다 자동으로 저장되어 작업 내용이 사라지지 않습니다</div>
+            </div>
+            
+            <div class="feature">
+                <div class="feature-icon">📥</div>
+                <div class="feature-title">이미지 다운로드</div>
+                <div class="feature-desc">완성된 공고를 고해상도 이미지로 다운로드할 수 있습니다</div>
+            </div>
+            
+            <div class="feature">
+                <div class="feature-icon">🎨</div>
+                <div class="feature-title">아름다운 디자인</div>
+                <div class="feature-desc">전문적인 디자인 템플릿으로 멋진 공고를 만드세요</div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p><strong>사용 방법:</strong></p>
+            <p>1. "제작 시작하기" 버튼을 클릭합니다</p>
+            <p>2. 왼쪽 입력 폼에 내용을 작성합니다</p>
+            <p>3. 오른쪽 미리보기에서 실시간으로 확인합니다</p>
+            <p>4. 완성되면 "이미지 다운로드" 버튼을 클릭합니다</p>
+        </div>
+    </div>
+</body>
+</html>
+

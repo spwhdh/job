@@ -1,0 +1,1237 @@
+// 전역 변수
+let zoomLevel = 1;
+let currentSelection = null;
+let floatingToolbar = null;
+
+// 실행 취소/다시 실행을 위한 히스토리
+let undoHistory = [];
+let redoHistory = [];
+let maxHistorySize = 30;
+let isRestoringHistory = false;
+
+// 페이지 로드 시 실행
+document.addEventListener('DOMContentLoaded', function() {
+    // 플로팅 툴바 초기화
+    initFloatingToolbar();
+    
+    // 디폴트 값 설정
+    const defaultValues = {
+        'requirements-note': `핫셀러는 성공을 위해 누구보다 노력할 수 있는 분들을 위해
+인센티브, 지분 증여 등 성과에 따른 보상과 다양한 복지 혜택이 주어집니다.
+하지만 목표 달성을 위해 높은 업무 강도와 잦은 야근이 요구되며,
+꾸준한 직무 역량 개발이 필수적입니다. 워라밸을 중시하거나 공무원과 같은
+안정적인 직장을 선호하는 분에게 맞지 않을 수 있습니다.
+이런 점을 감안했을 때,
+지원자분께서 우리 회사와 잘 어울린다고 생각하시나요?`,
+        'work-hours': '오전 9시 30분 ~ 오후 6시 30분',
+        'work-location': '서울특별시 동대문구 장한로6 605호',
+        'additional-info': `- 포트폴리오 필수 첨부 (누락 시 서류 심사에서 자동 불합격)
+- 허위 사실이 발견되는 경우 채용이 취소될 수 있습니다.`
+    };
+    
+    // 모든 textarea에 실시간 업데이트 이벤트 연결
+    const textareas = document.querySelectorAll('textarea');
+    textareas.forEach(textarea => {
+        textarea.addEventListener('input', function() {
+            updatePreview(this.id);
+            
+            // 히스토리 저장 (디바운스)
+            clearTimeout(textarea.historyTimeout);
+            textarea.historyTimeout = setTimeout(() => {
+                saveHistoryState();
+            }, 500);
+        });
+        
+        // 초기 로드 시 저장된 데이터가 있으면 복원, 없으면 디폴트 값 사용
+        const savedValue = localStorage.getItem(textarea.id);
+        if (savedValue) {
+            textarea.value = savedValue;
+            updatePreview(textarea.id);
+        } else if (defaultValues[textarea.id]) {
+            // 디폴트 값이 있는 경우 설정
+            textarea.value = defaultValues[textarea.id];
+            updatePreview(textarea.id);
+        }
+    });
+    
+    // 미리보기 직접 편집 기능 활성화
+    enableDirectEdit();
+    
+    // 저장된 스타일 복원
+    setTimeout(() => {
+        restorePreviewStyles();
+        
+        // 디폴트 HTML 값 적용 (저장된 값이 없을 때만)
+        applyDefaultHTMLValues();
+    }, 100);
+    
+    // 초기 상태를 히스토리에 저장
+    setTimeout(() => {
+        saveHistoryState();
+    }, 200);
+    
+    // 자동 저장 기능
+    setInterval(autoSave, 5000); // 5초마다 자동 저장
+    
+    // 미리보기 스크롤을 맨 위로 설정 (공고 제목이 먼저 보이도록)
+    setTimeout(() => {
+        const previewScroll = document.querySelector('.preview-scroll');
+        if (previewScroll) {
+            previewScroll.scrollTop = 0;
+        }
+    }, 300);
+});
+
+// 미리보기 업데이트 함수
+function updatePreview(fieldId) {
+    const input = document.getElementById(fieldId);
+    const previewId = 'preview-' + fieldId;
+    const preview = document.getElementById(previewId);
+    
+    if (!input || !preview) return;
+    
+    const text = input.value.trim();
+    
+    // 공고 제목 처리
+    if (fieldId === 'job-title') {
+        if (text === '') {
+            preview.textContent = '공고 제목을 입력하세요';
+        } else {
+            preview.textContent = text;
+        }
+        return;
+    }
+    
+    // 자격 요건 추가 설명 박스 처리
+    if (fieldId === 'requirements-note') {
+        if (text === '') {
+            preview.innerHTML = '';
+            preview.style.display = 'none';
+            return;
+        }
+        
+        // 박스 표시
+        preview.style.display = 'block';
+        
+        const lines = text.split('\n').filter(line => line.trim() !== '');
+        let html = '';
+        
+        lines.forEach(line => {
+            const trimmedLine = line.trim();
+            let processedLine = escapeHtml(trimmedLine);
+            
+            // "하지만"으로 시작하는 문장 강조
+            if (trimmedLine.startsWith('하지만')) {
+                processedLine = `<strong>${processedLine}</strong>`;
+            }
+            
+            html += `<p>${processedLine}</p>`;
+        });
+        
+        preview.innerHTML = html;
+        return;
+    }
+    
+    // 근무 시간 처리
+    if (fieldId === 'work-hours') {
+        const preview = document.getElementById('preview-work-hours');
+        if (!preview) return;
+        
+        if (text === '') {
+            preview.textContent = '오전 9시 30분 ~ 오후 6시 30분'; // 기본값
+        } else {
+            preview.textContent = text;
+        }
+        return;
+    }
+    
+    // 근무지 처리
+    if (fieldId === 'work-location') {
+        const preview = document.getElementById('preview-work-location');
+        if (!preview) return;
+        
+        if (text === '') {
+            preview.textContent = '서울특별시 동대문구 장한로6 605호'; // 기본값
+        } else {
+            preview.textContent = text;
+        }
+        return;
+    }
+    
+    // 일반 리스트 형식 처리
+    if (text === '') {
+        preview.innerHTML = '<p class="placeholder-text">내용을 입력해주세요</p>';
+        return;
+    }
+    
+    // 줄바꿈을 기준으로 분리하여 리스트 생성
+    const lines = text.split('\n').filter(line => line.trim() !== '');
+    
+    if (lines.length === 0) {
+        preview.innerHTML = '<p class="placeholder-text">내용을 입력해주세요</p>';
+        return;
+    }
+    
+    // HTML 생성
+    let html = '<ul>';
+    lines.forEach(line => {
+        const trimmedLine = line.trim();
+        // 이미 • 또는 - 로 시작하는 경우 그대로 사용
+        if (trimmedLine.startsWith('•') || trimmedLine.startsWith('-')) {
+            html += `<li>${escapeHtml(trimmedLine.substring(1).trim())}</li>`;
+        } else {
+            html += `<li>${escapeHtml(trimmedLine)}</li>`;
+        }
+    });
+    html += '</ul>';
+    
+    preview.innerHTML = html;
+}
+
+// HTML 이스케이프 함수 (XSS 방지)
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// 자동 저장 함수
+function autoSave() {
+    const textareas = document.querySelectorAll('textarea');
+    textareas.forEach(textarea => {
+        localStorage.setItem(textarea.id, textarea.value);
+    });
+    
+    // 미리보기 영역의 스타일이 적용된 HTML도 저장
+    savePreviewStyles();
+    
+    console.log('자동 저장 완료:', new Date().toLocaleTimeString());
+}
+
+// 미리보기 스타일 저장
+function savePreviewStyles() {
+    const editableFields = [
+        'preview-job-title',
+        'preview-recommend',
+        'preview-duties',
+        'preview-requirements',
+        'preview-preferred',
+        'preview-requirements-note',
+        'preview-additional-info'
+    ];
+    
+    editableFields.forEach(fieldId => {
+        const element = document.getElementById(fieldId);
+        if (element) {
+            localStorage.setItem(fieldId + '-html', element.innerHTML);
+        }
+    });
+}
+
+// 미리보기 스타일 복원
+function restorePreviewStyles() {
+    const editableFields = [
+        'preview-job-title',
+        'preview-recommend',
+        'preview-duties',
+        'preview-requirements',
+        'preview-preferred',
+        'preview-requirements-note',
+        'preview-additional-info'
+    ];
+    
+    editableFields.forEach(fieldId => {
+        const savedHTML = localStorage.getItem(fieldId + '-html');
+        if (savedHTML) {
+            const element = document.getElementById(fieldId);
+            if (element && !element.querySelector('.placeholder-text')) {
+                // 플레이스홀더가 아닌 경우에만 복원
+                element.innerHTML = savedHTML;
+            }
+        }
+    });
+}
+
+// 디폴트 HTML 값 적용 (처음 로드 시에만)
+function applyDefaultHTMLValues() {
+    const STYLE_VERSION = '1.3'; // 스타일 버전 (스타일 변경 시 증가)
+    const defaultHTMLValues = {
+        'preview-requirements-note': `<p>핫셀러는 성공을 위해 누구보다 노력할 수 있는 분들을 위해</p><p>인센티브, 지분 증여 등 성과에 따른 보상과 다양한 복지 혜택이 주어집니다.</p><p><strong>하지만 목표 달성을 위해 높은 업무 강도와 잦은 야근이 요구되며,</strong></p><p>꾸준한 직무 역량 개발이 필수적입니다. 워라밸을 중시하거나 공무원과 같은</p><p>안정적인 직장을 선호하는 분에게 맞지 않을 수 있습니다.</p><p><span style="color: #4169E1; font-weight: bold;">이런 점을 감안했을 때,</span></p><p><span style="color: #4169E1; font-weight: bold;">지원자분께서 우리 회사와 잘 어울린다고 생각하시나요?</span></p>`,
+        'preview-additional-info': `<ul><li>포트폴리오 필수 첨부 (누락 시 서류 심사에서 자동 불합격)</li><li>허위 사실이 발견되는 경우 채용이 취소될 수 있습니다.</li></ul>`
+    };
+    
+    // 저장된 스타일 버전 확인
+    const savedVersion = localStorage.getItem('style-version');
+    
+    // 버전이 다르면 저장된 HTML 삭제
+    if (savedVersion !== STYLE_VERSION) {
+        localStorage.removeItem('preview-requirements-note-html');
+        localStorage.removeItem('preview-additional-info-html');
+        localStorage.setItem('style-version', STYLE_VERSION);
+        console.log('스타일 버전 업데이트:', STYLE_VERSION);
+    }
+    
+    Object.keys(defaultHTMLValues).forEach(fieldId => {
+        // 저장된 HTML이 없고, 입력 필드에 디폴트 값이 있는 경우에만 적용
+        const savedHTML = localStorage.getItem(fieldId + '-html');
+        const element = document.getElementById(fieldId);
+        
+        if (!savedHTML && element) {
+            const inputId = fieldId.replace('preview-', '');
+            const input = document.getElementById(inputId);
+            
+            // 입력 필드에 디폴트 값이 있고, 저장된 HTML이 없으면 디폴트 HTML 적용
+            if (input && input.value && !savedHTML) {
+                element.innerHTML = defaultHTMLValues[fieldId];
+                element.style.display = 'block';
+            }
+        }
+    });
+}
+
+// 줌 인 함수
+function zoomIn() {
+    if (zoomLevel < 1.5) {
+        zoomLevel += 0.1;
+        applyZoom();
+    }
+}
+
+// 줌 아웃 함수
+function zoomOut() {
+    if (zoomLevel > 0.5) {
+        zoomLevel -= 0.1;
+        applyZoom();
+    }
+}
+
+// 줌 적용 함수
+function applyZoom() {
+    const preview = document.getElementById('preview');
+    preview.style.transform = `scale(${zoomLevel})`;
+    document.getElementById('zoom-level').textContent = Math.round(zoomLevel * 100) + '%';
+}
+
+// 이미지 다운로드 함수
+async function downloadImage() {
+    // 다운로드 중임을 알림
+    const btn = document.querySelector('.download-btn');
+    const originalText = btn.textContent;
+    btn.textContent = '⏳ 생성 중...';
+    btn.disabled = true;
+    
+    try {
+        // html2canvas 라이브러리가 필요합니다
+        // CDN을 통해 동적으로 로드
+        if (typeof html2canvas === 'undefined') {
+            await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
+        }
+        
+        const element = document.getElementById('preview');
+        const originalTransform = element.style.transform;
+        element.style.transform = 'scale(1)'; // 다운로드 시 원본 크기로
+        
+        const canvas = await html2canvas(element, {
+            backgroundColor: '#ffffff',
+            scale: 2, // 고해상도
+            logging: false,
+            useCORS: true,
+            allowTaint: true
+        });
+        
+        element.style.transform = originalTransform; // 원래 줌 레벨로 복원
+        
+        // 캔버스를 이미지로 변환
+        canvas.toBlob(function(blob) {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            const date = new Date();
+            const filename = `채용공고_${date.getFullYear()}${String(date.getMonth()+1).padStart(2,'0')}${String(date.getDate()).padStart(2,'0')}_${String(date.getHours()).padStart(2,'0')}${String(date.getMinutes()).padStart(2,'0')}.png`;
+            
+            link.href = url;
+            link.download = filename;
+            link.click();
+            
+            URL.revokeObjectURL(url);
+            
+            btn.textContent = originalText;
+            btn.disabled = false;
+            alert('✅ 이미지가 다운로드되었습니다!');
+        });
+        
+    } catch (error) {
+        console.error('이미지 생성 실패:', error);
+        alert('❌ 이미지 생성에 실패했습니다. 콘솔을 확인해주세요.');
+        btn.textContent = originalText;
+        btn.disabled = false;
+    }
+}
+
+// 이미지 업로드 및 링크 복사 (여러 서비스 시도 + 폴백)
+async function copyImageLink() {
+    const btn = document.querySelector('.copy-link-btn');
+    const originalText = btn.textContent;
+    btn.textContent = '⏳ 업로드 중...';
+    btn.disabled = true;
+    
+    try {
+        // html2canvas 라이브러리 로드
+        if (typeof html2canvas === 'undefined') {
+            await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
+        }
+        
+        const element = document.getElementById('preview');
+        const originalTransform = element.style.transform;
+        element.style.transform = 'scale(1)';
+        
+        // 캔버스 생성
+        const canvas = await html2canvas(element, {
+            backgroundColor: '#ffffff',
+            scale: 2,
+            logging: false,
+            useCORS: true,
+            allowTaint: true
+        });
+        
+        element.style.transform = originalTransform;
+        
+        // 캔버스를 Blob과 Base64로 변환
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+        const base64 = canvas.toDataURL('image/png');
+        
+        // 방법 1: freeimage.host 시도
+        try {
+            btn.textContent = '⏳ 업로드 중... (1/3)';
+            const formData1 = new FormData();
+            formData1.append('source', blob);
+            formData1.append('type', 'file');
+            formData1.append('action', 'upload');
+            
+            const response1 = await fetch('https://freeimage.host/api/1/upload?key=6d207e02198a847aa98d0a2a901485a5', {
+                method: 'POST',
+                body: formData1
+            });
+            
+            const data1 = await response1.json();
+            if (data1.success && data1.image && data1.image.url) {
+                await navigator.clipboard.writeText(data1.image.url);
+                btn.textContent = '✅ 복사 완료!';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.disabled = false;
+                }, 2000);
+                alert(`✅ 이미지 링크가 클립보드에 복사되었습니다!\n\n${data1.image.url}`);
+                return;
+            }
+        } catch (e) {
+            console.log('freeimage.host 실패, 다음 시도...');
+        }
+        
+        // 방법 2: catbox.moe 시도
+        try {
+            btn.textContent = '⏳ 업로드 중... (2/3)';
+            const formData2 = new FormData();
+            formData2.append('reqtype', 'fileupload');
+            formData2.append('fileToUpload', blob, 'recruitment.png');
+            
+            const response2 = await fetch('https://catbox.moe/user/api.php', {
+                method: 'POST',
+                body: formData2
+            });
+            
+            const imageUrl = await response2.text();
+            if (imageUrl && imageUrl.startsWith('https://')) {
+                await navigator.clipboard.writeText(imageUrl.trim());
+                btn.textContent = '✅ 복사 완료!';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.disabled = false;
+                }, 2000);
+                alert(`✅ 이미지 링크가 클립보드에 복사되었습니다!\n\n${imageUrl.trim()}`);
+                return;
+            }
+        } catch (e) {
+            console.log('catbox.moe 실패, 다음 시도...');
+        }
+        
+        // 방법 3: Base64 데이터 URL 복사 (폴백 - 항상 작동)
+        btn.textContent = '⏳ 처리 중... (3/3)';
+        await navigator.clipboard.writeText(base64);
+        
+        btn.textContent = '✅ 복사 완료!';
+        setTimeout(() => {
+            btn.textContent = originalText;
+            btn.disabled = false;
+        }, 2000);
+        
+        alert('⚠️ 외부 업로드 실패로 Base64 이미지 데이터를 복사했습니다.\n\n이 데이터를 HTML의 <img> 태그 src에 직접 붙여넣으면 이미지가 표시됩니다.\n\n예: <img src="복사된_데이터">');
+        
+    } catch (error) {
+        console.error('이미지 생성 실패:', error);
+        alert('❌ 이미지 생성에 실패했습니다: ' + error.message);
+        btn.textContent = originalText;
+        btn.disabled = false;
+    }
+}
+
+// 스크립트 동적 로드 함수
+function loadScript(url) {
+    return new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = url;
+        script.onload = resolve;
+        script.onerror = reject;
+        document.head.appendChild(script);
+    });
+}
+
+// 데이터 초기화 함수
+function clearAll() {
+    if (confirm('⚠️ 모든 내용을 지우시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
+        const textareas = document.querySelectorAll('textarea');
+        textareas.forEach(textarea => {
+            textarea.value = '';
+            localStorage.removeItem(textarea.id);
+            updatePreview(textarea.id);
+        });
+        alert('✅ 모든 내용이 초기화되었습니다.');
+    }
+}
+
+// 키보드 단축키
+document.addEventListener('keydown', function(e) {
+    // Ctrl + S: 수동 저장
+    if (e.ctrlKey && e.key === 's') {
+        e.preventDefault();
+        autoSave();
+        alert('💾 저장되었습니다!');
+    }
+    
+    // Ctrl + D: 다운로드
+    if (e.ctrlKey && e.key === 'd') {
+        e.preventDefault();
+        downloadImage();
+    }
+    
+    // Ctrl + B: 굵게
+    if (e.ctrlKey && e.key === 'b') {
+        e.preventDefault();
+        applyFormat('bold');
+    }
+    
+    // Ctrl + U: 밑줄
+    if (e.ctrlKey && e.key === 'u') {
+        e.preventDefault();
+        applyFormat('underline');
+    }
+    
+    // Ctrl + Z: 실행 취소
+    if (e.ctrlKey && e.key === 'z' && !e.shiftKey) {
+        const activeElement = document.activeElement;
+        if (activeElement && activeElement.closest('.editable-content')) {
+            e.preventDefault();
+            undo();
+        }
+    }
+    
+    // Ctrl + Y 또는 Ctrl + Shift + Z: 다시 실행
+    if ((e.ctrlKey && e.key === 'y') || (e.ctrlKey && e.shiftKey && e.key === 'z')) {
+        const activeElement = document.activeElement;
+        if (activeElement && activeElement.closest('.editable-content')) {
+            e.preventDefault();
+            redo();
+        }
+    }
+    
+    // Ctrl + A: 전체 선택 (편집 가능 영역 내에서만)
+    if (e.ctrlKey && e.key === 'a') {
+        const activeElement = document.activeElement;
+        if (activeElement && activeElement.closest('.editable-content')) {
+            e.preventDefault();
+            selectAllInElement(activeElement);
+        }
+    }
+});
+
+// 미리보기 직접 편집 기능
+function enableDirectEdit() {
+    const editableFields = [
+        { previewId: 'preview-job-title', inputId: 'job-title' },
+        { previewId: 'preview-recommend', inputId: 'recommend' },
+        { previewId: 'preview-duties', inputId: 'duties' },
+        { previewId: 'preview-requirements', inputId: 'requirements' },
+        { previewId: 'preview-preferred', inputId: 'preferred' },
+        { previewId: 'preview-requirements-note', inputId: 'requirements-note' },
+        { previewId: 'preview-work-hours', inputId: 'work-hours' },
+        { previewId: 'preview-work-location', inputId: 'work-location' },
+        { previewId: 'preview-additional-info', inputId: 'additional-info' }
+    ];
+    
+    editableFields.forEach(field => {
+        const preview = document.getElementById(field.previewId);
+        const input = document.getElementById(field.inputId);
+        
+        if (!preview || !input) return;
+        
+        // contenteditable 활성화
+        preview.contentEditable = true;
+        preview.setAttribute('data-input-id', field.inputId);
+        preview.setAttribute('spellcheck', 'false');
+        
+        // 포커스 시 스타일 추가 및 플레이스홀더 제거
+        preview.addEventListener('focus', function() {
+            this.classList.add('editable-mode');
+            
+            // 초기 상태 저장
+            saveHistoryState();
+            
+            // 플레이스홀더 텍스트가 있으면 지우기
+            const placeholder = this.querySelector('.placeholder-text');
+            if (placeholder) {
+                this.innerHTML = '';
+                // requirements-note인 경우 단락 형식으로 시작
+                if (field.inputId === 'requirements-note') {
+                    this.innerHTML = '<p><br></p>';
+                } else {
+                    // 리스트 형식으로 시작
+                    this.innerHTML = '<ul><li><br></li></ul>';
+                }
+            }
+        });
+        
+        // 블러 시 스타일 제거 및 입력 폼 업데이트
+        preview.addEventListener('blur', function() {
+            this.classList.remove('editable-mode');
+            syncToInput(field.inputId, field.previewId);
+        });
+        
+        // 입력 시 히스토리 저장 (디바운스 적용)
+        let inputTimeout;
+        preview.addEventListener('input', function() {
+            clearTimeout(inputTimeout);
+            inputTimeout = setTimeout(() => {
+                saveHistoryState();
+            }, 500); // 0.5초 후 저장
+        });
+        
+        // 붙여넣기 이벤트 처리
+        preview.addEventListener('paste', function(e) {
+            // 기본 붙여넣기 동작 방지
+            e.preventDefault();
+            
+            // 클립보드에서 텍스트 가져오기
+            const text = (e.clipboardData || window.clipboardData).getData('text/plain');
+            
+            // 현재 선택 영역에 텍스트 삽입
+            const selection = window.getSelection();
+            if (!selection.rangeCount) return;
+            
+            const range = selection.getRangeAt(0);
+            range.deleteContents();
+            
+            // 텍스트를 HTML로 변환 (줄바꿈 유지)
+            const lines = text.split('\n');
+            const fragment = document.createDocumentFragment();
+            
+            lines.forEach((line, index) => {
+                const textNode = document.createTextNode(line);
+                fragment.appendChild(textNode);
+                
+                if (index < lines.length - 1) {
+                    fragment.appendChild(document.createElement('br'));
+                }
+            });
+            
+            range.insertNode(fragment);
+            
+            // 커서를 삽입된 내용 끝으로 이동
+            range.collapse(false);
+            selection.removeAllRanges();
+            selection.addRange(range);
+            
+            // 히스토리 저장
+            setTimeout(() => saveHistoryState(), 100);
+        });
+    });
+}
+
+// 미리보기 내용을 입력 폼으로 동기화
+function syncToInput(inputId, previewId) {
+    const preview = document.getElementById(previewId);
+    const input = document.getElementById(inputId);
+    
+    if (!preview || !input) return;
+    
+    // 플레이스홀더인 경우 무시
+    const placeholder = preview.querySelector('.placeholder-text');
+    if (placeholder) {
+        return;
+    }
+    
+    // 공고 제목, 근무 시간, 근무지는 텍스트 그대로 동기화
+    if (inputId === 'job-title' || inputId === 'work-hours' || inputId === 'work-location') {
+        input.value = preview.textContent.trim();
+        localStorage.setItem(inputId, input.value);
+        return;
+    }
+    
+    // requirements-note 특별 처리
+    if (inputId === 'requirements-note') {
+        const paragraphs = preview.querySelectorAll('p');
+        const lines = [];
+        paragraphs.forEach(p => {
+            const text = p.textContent.trim();
+            if (text && text !== '내용을 입력해주세요') {
+                lines.push(text);
+            }
+        });
+        input.value = lines.join('\n');
+    } else {
+        // 리스트 형식 처리
+        const items = preview.querySelectorAll('li');
+        const lines = [];
+        items.forEach(item => {
+            const text = item.textContent.trim();
+            if (text) lines.push(text);
+        });
+        input.value = lines.join('\n');
+    }
+    
+    // 내용이 비어있으면 플레이스홀더 다시 표시
+    if (input.value.trim() === '') {
+        preview.innerHTML = '<p class="placeholder-text">내용을 입력해주세요</p>';
+    }
+    
+    // 로컬 스토리지에 저장
+    localStorage.setItem(inputId, input.value);
+}
+
+// ============ 플로팅 툴바 기능 ============
+
+// 플로팅 툴바 초기화
+function initFloatingToolbar() {
+    floatingToolbar = document.getElementById('floatingToolbar');
+    const previewPanel = document.querySelector('.preview-scroll');
+    
+    if (!floatingToolbar || !previewPanel) return;
+    
+    // 텍스트 선택 이벤트
+    document.addEventListener('mouseup', handleTextSelection);
+    document.addEventListener('selectionchange', handleSelectionChange);
+    
+    // 툴바 버튼 이벤트
+    document.getElementById('boldBtn').addEventListener('click', () => applyFormat('bold'));
+    document.getElementById('underlineBtn').addEventListener('click', () => applyFormat('underline'));
+    
+    // 폰트 변경
+    document.getElementById('fontFamily').addEventListener('change', (e) => {
+        applyStyle('fontFamily', e.target.value);
+    });
+    
+    // 폰트 크기 변경
+    document.getElementById('fontSize').addEventListener('change', (e) => {
+        applyStyle('fontSize', e.target.value + 'px');
+    });
+    
+    // 텍스트 색상
+    document.getElementById('textColor').addEventListener('input', (e) => {
+        applyStyle('color', e.target.value);
+    });
+    
+    // 배경색
+    document.getElementById('bgColor').addEventListener('input', (e) => {
+        applyStyle('backgroundColor', e.target.value);
+    });
+    
+    // 텍스트 색상 제거 버튼
+    document.getElementById('textColorNone').addEventListener('click', () => {
+        removeTextColor();
+    });
+    
+    // 배경색 제거 버튼
+    document.getElementById('bgColorNone').addEventListener('click', () => {
+        removeBackgroundColor();
+    });
+    
+    // 다른 곳 클릭하면 툴바 숨김 (색상 선택기 제외)
+    document.addEventListener('mousedown', (e) => {
+        // 툴바 내부를 클릭한 경우
+        if (floatingToolbar.contains(e.target)) {
+            return;
+        }
+        
+        // 편집 가능 영역을 클릭한 경우
+        if (e.target.closest('.editable-content')) {
+            return;
+        }
+        
+        // 색상 선택기 팝업 내부를 클릭한 경우 (브라우저 네이티브 color picker)
+        // color input 요소의 경우 클릭해도 툴바 유지
+        if (e.target.type === 'color' || e.target.closest('input[type="color"]')) {
+            return;
+        }
+        
+        // 그 외의 경우 툴바 숨김
+        hideToolbar();
+    });
+}
+
+// 텍스트 선택 감지
+function handleTextSelection(e) {
+    const selection = window.getSelection();
+    const selectedText = selection.toString().trim();
+    
+    // 편집 가능 영역 내에서 텍스트가 선택되었는지 확인
+    if (selectedText.length > 0) {
+        const range = selection.getRangeAt(0);
+        const container = range.commonAncestorContainer;
+        
+        // 부모 요소 중 editable-content가 있는지 확인
+        let parent = container.nodeType === 3 ? container.parentElement : container;
+        while (parent) {
+            if (parent.classList && parent.classList.contains('editable-content')) {
+                currentSelection = selection;
+                showToolbar(e);
+                return;
+            }
+            parent = parent.parentElement;
+        }
+    }
+    
+    // 선택된 텍스트가 없으면 툴바 숨김
+    hideToolbar();
+}
+
+// 선택 변경 감지
+function handleSelectionChange() {
+    const selection = window.getSelection();
+    if (selection.toString().trim().length === 0 && floatingToolbar.classList.contains('show')) {
+        // 약간의 지연을 주어 버튼 클릭이 먼저 처리되도록 함
+        setTimeout(() => {
+            if (window.getSelection().toString().trim().length === 0) {
+                hideToolbar();
+            }
+        }, 100);
+    }
+}
+
+// 툴바 표시
+function showToolbar(e) {
+    if (!floatingToolbar) return;
+    
+    const selection = window.getSelection();
+    if (selection.rangeCount === 0) return;
+    
+    const range = selection.getRangeAt(0);
+    const rect = range.getBoundingClientRect();
+    
+    // 툴바 위치 계산
+    const toolbarWidth = 400; // 예상 툴바 너비
+    const toolbarHeight = 50; // 예상 툴바 높이
+    
+    let left = rect.left + (rect.width / 2) - (toolbarWidth / 2);
+    let top = rect.top - toolbarHeight - 10;
+    
+    // 화면 밖으로 나가지 않도록 조정
+    if (left < 10) left = 10;
+    if (left + toolbarWidth > window.innerWidth - 10) {
+        left = window.innerWidth - toolbarWidth - 10;
+    }
+    
+    // 위쪽 공간이 부족하면 아래에 표시
+    if (top < 10) {
+        top = rect.bottom + 10;
+    }
+    
+    floatingToolbar.style.left = left + 'px';
+    floatingToolbar.style.top = top + window.scrollY + 'px';
+    floatingToolbar.classList.add('show');
+    
+    // 현재 스타일 반영
+    updateToolbarState();
+}
+
+// 툴바 숨김
+function hideToolbar() {
+    if (floatingToolbar) {
+        floatingToolbar.classList.remove('show');
+    }
+}
+
+// 현재 선택 영역의 스타일 상태를 툴바에 반영
+function updateToolbarState() {
+    const selection = window.getSelection();
+    if (selection.rangeCount === 0) return;
+    
+    const range = selection.getRangeAt(0);
+    let element = range.commonAncestorContainer;
+    
+    if (element.nodeType === 3) {
+        element = element.parentElement;
+    }
+    
+    const computedStyle = window.getComputedStyle(element);
+    
+    // 굵게 상태 확인
+    const isBold = document.queryCommandState('bold') || 
+                   computedStyle.fontWeight >= 600;
+    document.getElementById('boldBtn').classList.toggle('active', isBold);
+    
+    // 밑줄 상태 확인
+    const isUnderline = document.queryCommandState('underline');
+    document.getElementById('underlineBtn').classList.toggle('active', isUnderline);
+    
+    // 텍스트 색상 확인
+    const textColor = rgbToHex(computedStyle.color);
+    if (textColor) {
+        document.getElementById('textColor').value = textColor;
+    }
+    
+    // 배경색 확인
+    const bgColor = computedStyle.backgroundColor;
+    if (bgColor && bgColor !== 'rgba(0, 0, 0, 0)' && bgColor !== 'transparent') {
+        const bgColorHex = rgbToHex(bgColor);
+        if (bgColorHex) {
+            document.getElementById('bgColor').value = bgColorHex;
+        }
+    }
+    
+    // 폰트 크기 확인
+    const fontSize = parseInt(computedStyle.fontSize);
+    if (fontSize) {
+        document.getElementById('fontSize').value = fontSize;
+    }
+    
+    // 폰트 패밀리 확인
+    const fontFamily = computedStyle.fontFamily;
+    const fontSelect = document.getElementById('fontFamily');
+    const options = Array.from(fontSelect.options);
+    
+    // 현재 폰트와 일치하는 옵션 찾기
+    for (let option of options) {
+        const optionFont = option.value.toLowerCase().replace(/['"]/g, '');
+        const currentFont = fontFamily.toLowerCase().replace(/['"]/g, '');
+        
+        if (currentFont.includes(optionFont.split(',')[0].trim())) {
+            fontSelect.value = option.value;
+            break;
+        }
+    }
+}
+
+// RGB를 HEX로 변환하는 함수
+function rgbToHex(rgb) {
+    // 이미 hex 형식이면 그대로 반환
+    if (rgb.startsWith('#')) {
+        return rgb;
+    }
+    
+    // rgb(r, g, b) 형식 파싱
+    const result = rgb.match(/\d+/g);
+    if (!result || result.length < 3) {
+        return null;
+    }
+    
+    const r = parseInt(result[0]);
+    const g = parseInt(result[1]);
+    const b = parseInt(result[2]);
+    
+    return '#' + [r, g, b].map(x => {
+        const hex = x.toString(16);
+        return hex.length === 1 ? '0' + hex : hex;
+    }).join('');
+}
+
+// 포맷 적용 (굵게, 밑줄)
+function applyFormat(command) {
+    const selection = window.getSelection();
+    if (selection.rangeCount === 0) return;
+    
+    document.execCommand(command, false, null);
+    
+    // 툴바 상태 업데이트
+    updateToolbarState();
+    
+    // 선택 유지
+    setTimeout(() => {
+        if (currentSelection) {
+            currentSelection = window.getSelection();
+        }
+    }, 10);
+}
+
+// 스타일 적용 (색상, 크기, 폰트)
+function applyStyle(property, value) {
+    const selection = window.getSelection();
+    if (selection.rangeCount === 0) return;
+    
+    const range = selection.getRangeAt(0);
+    
+    // 선택된 텍스트를 span으로 감싸기
+    const span = document.createElement('span');
+    
+    try {
+        range.surroundContents(span);
+        span.style[property] = value;
+    } catch (e) {
+        // 여러 요소에 걸쳐 선택된 경우
+        const fragment = range.extractContents();
+        const wrapper = document.createElement('span');
+        wrapper.style[property] = value;
+        wrapper.appendChild(fragment);
+        range.insertNode(wrapper);
+    }
+    
+    // 선택 해제 및 툴바 유지를 위한 작은 지연
+    setTimeout(() => {
+        const newSelection = window.getSelection();
+        newSelection.removeAllRanges();
+        currentSelection = null;
+    }, 100);
+}
+
+// 텍스트 색상 제거
+function removeTextColor() {
+    const selection = window.getSelection();
+    if (selection.rangeCount === 0) return;
+    
+    const range = selection.getRangeAt(0);
+    
+    // 선택된 영역의 모든 요소에서 color 스타일 제거
+    const container = range.commonAncestorContainer;
+    let element = container.nodeType === 3 ? container.parentElement : container;
+    
+    // 현재 요소와 자식 요소들의 color 스타일 제거
+    if (element.style) {
+        element.style.color = '';
+        
+        // 스타일이 완전히 비었으면 style 속성 제거
+        if (element.style.cssText === '') {
+            element.removeAttribute('style');
+        }
+    }
+    
+    // 선택 영역 내의 모든 span 요소 처리
+    const spans = element.querySelectorAll('span');
+    spans.forEach(span => {
+        span.style.color = '';
+        if (span.style.cssText === '') {
+            // span에 다른 스타일이 없으면 내용만 유지하고 span 제거
+            const parent = span.parentNode;
+            while (span.firstChild) {
+                parent.insertBefore(span.firstChild, span);
+            }
+            parent.removeChild(span);
+        }
+    });
+    
+    // 히스토리 저장
+    setTimeout(() => saveHistoryState(), 100);
+}
+
+// 배경색 제거
+function removeBackgroundColor() {
+    const selection = window.getSelection();
+    if (selection.rangeCount === 0) return;
+    
+    const range = selection.getRangeAt(0);
+    
+    // 선택된 영역의 모든 요소에서 backgroundColor 스타일 제거
+    const container = range.commonAncestorContainer;
+    let element = container.nodeType === 3 ? container.parentElement : container;
+    
+    // 현재 요소와 자식 요소들의 backgroundColor 스타일 제거
+    if (element.style) {
+        element.style.backgroundColor = '';
+        
+        // 스타일이 완전히 비었으면 style 속성 제거
+        if (element.style.cssText === '') {
+            element.removeAttribute('style');
+        }
+    }
+    
+    // 선택 영역 내의 모든 span 요소 처리
+    const spans = element.querySelectorAll('span');
+    spans.forEach(span => {
+        span.style.backgroundColor = '';
+        if (span.style.cssText === '') {
+            // span에 다른 스타일이 없으면 내용만 유지하고 span 제거
+            const parent = span.parentNode;
+            while (span.firstChild) {
+                parent.insertBefore(span.firstChild, span);
+            }
+            parent.removeChild(span);
+        }
+    });
+    
+    // 히스토리 저장
+    setTimeout(() => saveHistoryState(), 100);
+}
+
+// ============ 실행 취소/다시 실행 기능 ============
+
+// 편집 가능 영역의 현재 상태 저장
+function saveHistoryState() {
+    if (isRestoringHistory) return;
+    
+    const editableFields = [
+        'preview-job-title',
+        'preview-recommend',
+        'preview-duties',
+        'preview-requirements',
+        'preview-preferred',
+        'preview-requirements-note',
+        'preview-work-hours',
+        'preview-work-location',
+        'preview-additional-info'
+    ];
+    
+    const state = {};
+    editableFields.forEach(fieldId => {
+        const element = document.getElementById(fieldId);
+        if (element) {
+            state[fieldId] = element.innerHTML;
+        }
+    });
+    
+    // 현재 상태를 히스토리에 추가
+    undoHistory.push(state);
+    
+    // 히스토리 크기 제한
+    if (undoHistory.length > maxHistorySize) {
+        undoHistory.shift();
+    }
+    
+    // 새로운 작업이 발생하면 다시 실행 히스토리 초기화
+    redoHistory = [];
+}
+
+// 실행 취소
+function undo() {
+    if (undoHistory.length === 0) {
+        console.log('실행 취소할 내용이 없습니다.');
+        return;
+    }
+    
+    // 현재 상태를 다시 실행 히스토리에 저장
+    const currentState = {};
+    const editableFields = [
+        'preview-job-title',
+        'preview-recommend',
+        'preview-duties',
+        'preview-requirements',
+        'preview-preferred',
+        'preview-requirements-note',
+        'preview-work-hours',
+        'preview-work-location',
+        'preview-additional-info'
+    ];
+    
+    editableFields.forEach(fieldId => {
+        const element = document.getElementById(fieldId);
+        if (element) {
+            currentState[fieldId] = element.innerHTML;
+        }
+    });
+    
+    redoHistory.push(currentState);
+    
+    // 이전 상태 복원
+    const previousState = undoHistory.pop();
+    isRestoringHistory = true;
+    
+    Object.keys(previousState).forEach(fieldId => {
+        const element = document.getElementById(fieldId);
+        if (element) {
+            element.innerHTML = previousState[fieldId];
+        }
+    });
+    
+    // 입력 필드도 동기화
+    syncAllFieldsToInput();
+    
+    setTimeout(() => {
+        isRestoringHistory = false;
+    }, 100);
+    
+    console.log('✅ 실행 취소');
+}
+
+// 다시 실행
+function redo() {
+    if (redoHistory.length === 0) {
+        console.log('다시 실행할 내용이 없습니다.');
+        return;
+    }
+    
+    // 현재 상태를 실행 취소 히스토리에 저장
+    const currentState = {};
+    const editableFields = [
+        'preview-recommend',
+        'preview-duties',
+        'preview-requirements',
+        'preview-preferred',
+        'preview-requirements-note',
+        'preview-work-hours',
+        'preview-work-location',
+        'preview-additional-info'
+    ];
+    
+    editableFields.forEach(fieldId => {
+        const element = document.getElementById(fieldId);
+        if (element) {
+            currentState[fieldId] = element.innerHTML;
+        }
+    });
+    
+    undoHistory.push(currentState);
+    
+    // 다음 상태 복원
+    const nextState = redoHistory.pop();
+    isRestoringHistory = true;
+    
+    Object.keys(nextState).forEach(fieldId => {
+        const element = document.getElementById(fieldId);
+        if (element) {
+            element.innerHTML = nextState[fieldId];
+        }
+    });
+    
+    // 입력 필드도 동기화
+    syncAllFieldsToInput();
+    
+    setTimeout(() => {
+        isRestoringHistory = false;
+    }, 100);
+    
+    console.log('✅ 다시 실행');
+}
+
+// 모든 필드를 입력 폼으로 동기화
+function syncAllFieldsToInput() {
+    const fieldMappings = [
+        { previewId: 'preview-job-title', inputId: 'job-title' },
+        { previewId: 'preview-recommend', inputId: 'recommend' },
+        { previewId: 'preview-duties', inputId: 'duties' },
+        { previewId: 'preview-requirements', inputId: 'requirements' },
+        { previewId: 'preview-preferred', inputId: 'preferred' },
+        { previewId: 'preview-requirements-note', inputId: 'requirements-note' },
+        { previewId: 'preview-work-hours', inputId: 'work-hours' },
+        { previewId: 'preview-work-location', inputId: 'work-location' },
+        { previewId: 'preview-additional-info', inputId: 'additional-info' }
+    ];
+    
+    fieldMappings.forEach(mapping => {
+        syncToInput(mapping.inputId, mapping.previewId);
+    });
+}
+
+// 전체 선택 (특정 요소 내에서만)
+function selectAllInElement(element) {
+    const range = document.createRange();
+    range.selectNodeContents(element);
+    const selection = window.getSelection();
+    selection.removeAllRanges();
+    selection.addRange(range);
+}
+
