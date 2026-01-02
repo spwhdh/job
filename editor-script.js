@@ -398,8 +398,25 @@ async function downloadImage() {
         
         element.style.transform = originalTransform; // 원래 줌 레벨로 복원
         
-        // 캔버스를 이미지로 변환
-        canvas.toBlob(function(blob) {
+        // 가로 900px로 리사이즈
+        const targetWidth = 900;
+        const originalWidth = canvas.width;
+        const originalHeight = canvas.height;
+        const targetHeight = Math.round((originalHeight * targetWidth) / originalWidth);
+        
+        // 새 캔버스 생성
+        const resizedCanvas = document.createElement('canvas');
+        resizedCanvas.width = targetWidth;
+        resizedCanvas.height = targetHeight;
+        const ctx = resizedCanvas.getContext('2d');
+        
+        // 고품질 리사이징
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(canvas, 0, 0, targetWidth, targetHeight);
+        
+        // 리사이즈된 캔버스를 이미지로 변환
+        resizedCanvas.toBlob(function(blob) {
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             const date = new Date();
@@ -413,7 +430,7 @@ async function downloadImage() {
             
             btn.textContent = originalText;
             btn.disabled = false;
-            alert('✅ 이미지가 다운로드되었습니다!');
+            alert('✅ 이미지가 다운로드되었습니다! (900px 가로)');
         });
         
     } catch (error) {
@@ -452,9 +469,26 @@ async function copyImageLink() {
         
         element.style.transform = originalTransform;
         
-        // 캔버스를 Blob과 Base64로 변환
-        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
-        const base64 = canvas.toDataURL('image/png');
+        // 가로 900px로 리사이즈
+        const targetWidth = 900;
+        const originalWidth = canvas.width;
+        const originalHeight = canvas.height;
+        const targetHeight = Math.round((originalHeight * targetWidth) / originalWidth);
+        
+        // 새 캔버스 생성
+        const resizedCanvas = document.createElement('canvas');
+        resizedCanvas.width = targetWidth;
+        resizedCanvas.height = targetHeight;
+        const ctx = resizedCanvas.getContext('2d');
+        
+        // 고품질 리사이징
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(canvas, 0, 0, targetWidth, targetHeight);
+        
+        // 리사이즈된 캔버스를 Blob과 Base64로 변환
+        const blob = await new Promise(resolve => resizedCanvas.toBlob(resolve, 'image/png'));
+        const base64 = resizedCanvas.toDataURL('image/png');
         
         // 방법 1: freeimage.host 시도
         try {
