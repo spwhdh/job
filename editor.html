@@ -8,6 +8,10 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&family=Nanum+Myeongjo:wght@400;700;800&family=Noto+Sans+KR:wght@100;300;400;500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="editor-style.css">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 </head>
 <body>
     <!-- 플로팅 툴바 -->
@@ -302,6 +306,30 @@
         </div>
     </div>
 
+    <!-- Firebase 초기화 -->
+    <script>
+        // Firebase 설정
+        const firebaseConfig = {
+            apiKey: "AIzaSyDNIFYHmE2wfiOZbYm3b1ptXZM1Yrtd1vA",
+            authDomain: "job-history-da4b4.firebaseapp.com",
+            databaseURL: "https://job-history-da4b4-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "job-history-da4b4",
+            storageBucket: "job-history-da4b4.firebasestorage.app",
+            messagingSenderId: "999574018206",
+            appId: "1:999574018206:web:c8e05dedbada61bc58038f",
+            measurementId: "G-TWFVPE37GS"
+        };
+
+        // Firebase 초기화
+        firebase.initializeApp(firebaseConfig);
+        
+        // Realtime Database 참조
+        const database = firebase.database();
+        const historiesRef = database.ref('jobHistories');
+        
+        console.log('✅ Firebase 초기화 완료');
+    </script>
+    
     <script src="editor-script.js"></script>
 </body>
 </html>

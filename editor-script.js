@@ -1483,29 +1483,77 @@ function resetDepartments() {
     console.log('✅ 부서 목록 초기화됨');
 }
 
-// ============ 공고 히스토리 기능 ============
+// ============ 공고 히스토리 기능 (Firebase 연동) ============
 
-// 히스토리 불러오기
-function loadHistories() {
-    const saved = localStorage.getItem('jobHistories');
-    if (saved) {
-        try {
-            return JSON.parse(saved);
-        } catch (e) {
-            console.error('히스토리 로드 실패:', e);
-            return [];
+// Firebase 히스토리 캐시 (로컬)
+let historiesCache = [];
+
+// 히스토리 불러오기 (Firebase)
+async function loadHistories() {
+    try {
+        // Firebase에서 데이터 가져오기
+        const snapshot = await historiesRef.once('value');
+        const data = snapshot.val();
+        
+        if (data) {
+            // 객체를 배열로 변환 (날짜순 정렬)
+            historiesCache = Object.values(data).sort((a, b) => 
+                new Date(b.date) - new Date(a.date)
+            );
+        } else {
+            historiesCache = [];
         }
+        
+        // 로컬 스토리지에도 백업
+        localStorage.setItem('jobHistories', JSON.stringify(historiesCache));
+        
+        return historiesCache;
+    } catch (error) {
+        console.error('Firebase 로드 실패, 로컬 스토리지 사용:', error);
+        
+        // Firebase 실패 시 로컬 스토리지 사용
+        const saved = localStorage.getItem('jobHistories');
+        if (saved) {
+            try {
+                historiesCache = JSON.parse(saved);
+                return historiesCache;
+            } catch (e) {
+                return [];
+            }
+        }
+        return [];
     }
-    return [];
 }
 
-// 히스토리 저장
-function saveHistories(histories) {
-    localStorage.setItem('jobHistories', JSON.stringify(histories));
+// 히스토리 저장 (Firebase)
+async function saveHistories(histories) {
+    try {
+        // Firebase에 저장 (배열을 객체로 변환)
+        const historiesObj = {};
+        histories.forEach(history => {
+            historiesObj[history.id] = history;
+        });
+        
+        await historiesRef.set(historiesObj);
+        
+        // 로컬 캐시 업데이트
+        historiesCache = histories;
+        
+        // 로컬 스토리지 백업
+        localStorage.setItem('jobHistories', JSON.stringify(histories));
+        
+        console.log('✅ Firebase에 히스토리 저장 완료');
+    } catch (error) {
+        console.error('Firebase 저장 실패:', error);
+        
+        // 실패 시 로컬 스토리지만 저장
+        localStorage.setItem('jobHistories', JSON.stringify(histories));
+        alert('⚠️ 온라인 동기화 실패. 로컬에만 저장되었습니다.');
+    }
 }
 
-// 현재 공고를 히스토리에 저장
-function saveCurrentHistory() {
+// 현재 공고를 히스토리에 저장 (Firebase)
+async function saveCurrentHistory() {
     const department = document.getElementById('department').value;
     const jobTitle = document.getElementById('job-title').value.trim();
     
@@ -1538,52 +1586,64 @@ function saveCurrentHistory() {
         data: data
     };
     
-    // 히스토리 목록에 추가
-    const histories = loadHistories();
-    histories.unshift(history); // 최신 항목이 맨 위로
-    
-    // 히스토리 개수 제한 (최대 50개)
-    if (histories.length > 50) {
-        histories.splice(50);
+    try {
+        // Firebase에 직접 저장 (개별 항목으로)
+        await historiesRef.child(history.id).set(history);
+        
+        // 로컬 캐시 업데이트
+        historiesCache.unshift(history);
+        
+        // 개수 제한 (최대 50개)
+        if (historiesCache.length > 50) {
+            const oldestId = historiesCache[50].id;
+            historiesCache.splice(50);
+            // Firebase에서도 삭제
+            await historiesRef.child(oldestId).remove();
+        }
+        
+        // 로컬 스토리지 백업
+        localStorage.setItem('jobHistories', JSON.stringify(historiesCache));
+        
+        // UI 업데이트
+        await renderHistoryList();
+        
+        // 성공 메시지
+        alert('✅ 현재 공고가 클라우드에 저장되었습니다!\n☁️ 모든 컴퓨터에서 자동으로 동기화됩니다.');
+        console.log('✅ Firebase에 히스토리 저장 완료:', history);
+        
+    } catch (error) {
+        console.error('Firebase 저장 실패:', error);
+        alert('⚠️ 클라우드 저장 실패. 네트워크를 확인해주세요.');
     }
-    
-    saveHistories(histories);
-    
-    // UI 업데이트
-    renderHistoryList();
-    
-    // 자동으로 히스토리 파일 다운로드
-    exportHistories();
-    
-    // 성공 메시지
-    alert('✅ 현재 공고가 히스토리에 저장되었습니다!\n📥 히스토리 파일도 자동으로 다운로드되었습니다.');
-    console.log('✅ 히스토리 저장 및 내보내기 완료:', history);
 }
 
 // 히스토리 목록 토글
-function toggleHistoryList() {
+async function toggleHistoryList() {
     const historyList = document.getElementById('historyList');
     const toggleIcon = document.getElementById('toggleHistoryIcon');
     
     if (historyList.style.display === 'none') {
         historyList.style.display = 'block';
         toggleIcon.textContent = '▲';
-        renderHistoryList();
+        
+        // Firebase에서 최신 데이터 로드
+        historyList.innerHTML = '<div class="history-empty">☁️ 클라우드에서 불러오는 중...</div>';
+        await renderHistoryList();
     } else {
         historyList.style.display = 'none';
         toggleIcon.textContent = '▼';
     }
 }
 
-// 히스토리 목록 렌더링
-function renderHistoryList() {
+// 히스토리 목록 렌더링 (Firebase)
+async function renderHistoryList() {
     const listContainer = document.getElementById('historyList');
     if (!listContainer) return;
     
-    const histories = loadHistories();
+    const histories = await loadHistories();
     
     if (histories.length === 0) {
-        listContainer.innerHTML = '<div class="history-empty">저장된 히스토리가 없습니다.<br>현재 공고를 저장해보세요!</div>';
+        listContainer.innerHTML = '<div class="history-empty">저장된 히스토리가 없습니다.<br>현재 공고를 저장해보세요! ☁️</div>';
         return;
     }
     
@@ -1611,7 +1671,7 @@ function renderHistoryList() {
                 <div class="history-item">
                     <div class="history-item-info">
                         <div class="history-item-title">${escapeHtml(history.jobTitle)}</div>
-                        <div class="history-item-date">${dateStr}</div>
+                        <div class="history-item-date">☁️ ${dateStr}</div>
                     </div>
                     <div class="history-item-actions">
                         <button class="history-load-btn" onclick="loadHistory('${history.id}')">불러오기</button>
@@ -1628,9 +1688,8 @@ function renderHistoryList() {
 }
 
 // 히스토리 불러오기
-function loadHistory(historyId) {
-    const histories = loadHistories();
-    const history = histories.find(h => h.id === historyId);
+async function loadHistory(historyId) {
+    const history = historiesCache.find(h => h.id === historyId);
     
     if (!history) {
         alert('❌ 히스토리를 찾을 수 없습니다.');
@@ -1669,63 +1728,78 @@ function loadHistory(historyId) {
     console.log('✅ 히스토리 불러옴:', history);
 }
 
-// 히스토리 삭제
-function deleteHistory(historyId) {
-    const histories = loadHistories();
-    const history = histories.find(h => h.id === historyId);
+// 히스토리 삭제 (Firebase)
+async function deleteHistory(historyId) {
+    const history = historiesCache.find(h => h.id === historyId);
     
     if (!history) {
         alert('❌ 히스토리를 찾을 수 없습니다.');
         return;
     }
     
-    if (!confirm(`"${history.jobTitle}" 히스토리를 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.`)) {
+    if (!confirm(`"${history.jobTitle}" 히스토리를 삭제하시겠습니까?\n\n☁️ 모든 컴퓨터에서 삭제됩니다.`)) {
         return;
     }
     
-    // 히스토리 삭제
-    const updatedHistories = histories.filter(h => h.id !== historyId);
-    saveHistories(updatedHistories);
-    
-    // UI 업데이트
-    renderHistoryList();
-    
-    console.log('✅ 히스토리 삭제됨:', historyId);
+    try {
+        // Firebase에서 삭제
+        await historiesRef.child(historyId).remove();
+        
+        // 로컬 캐시에서도 삭제
+        historiesCache = historiesCache.filter(h => h.id !== historyId);
+        
+        // 로컬 스토리지 업데이트
+        localStorage.setItem('jobHistories', JSON.stringify(historiesCache));
+        
+        // UI 업데이트
+        await renderHistoryList();
+        
+        console.log('✅ Firebase에서 히스토리 삭제됨:', historyId);
+    } catch (error) {
+        console.error('Firebase 삭제 실패:', error);
+        alert('⚠️ 삭제에 실패했습니다. 네트워크를 확인해주세요.');
+    }
 }
 
-// 히스토리를 JSON 파일로 내보내기 (자동 다운로드)
-function exportHistories() {
-    const histories = loadHistories();
-    
-    if (histories.length === 0) {
-        console.log('내보낼 히스토리가 없습니다.');
+// Firebase 실시간 리스너 설정
+function setupFirebaseListener() {
+    if (typeof historiesRef === 'undefined') {
+        console.warn('Firebase가 초기화되지 않았습니다.');
         return;
     }
     
-    // JSON 문자열로 변환 (보기 좋게 포맷)
-    const jsonData = JSON.stringify(histories, null, 2);
-    
-    // Blob 생성
-    const blob = new Blob([jsonData], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    
-    // 다운로드 링크 생성 및 자동 클릭
-    const link = document.createElement('a');
-    const date = new Date();
-    const filename = `채용공고_히스토리_${date.getFullYear()}${String(date.getMonth()+1).padStart(2,'0')}${String(date.getDate()).padStart(2,'0')}_${String(date.getHours()).padStart(2,'0')}${String(date.getMinutes()).padStart(2,'0')}.json`;
-    
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-    // URL 메모리 해제
-    setTimeout(() => {
-        URL.revokeObjectURL(url);
-    }, 100);
-    
-    console.log('✅ 히스토리 파일 다운로드 완료:', filename);
+    // 데이터 변경 감지
+    historiesRef.on('value', (snapshot) => {
+        const data = snapshot.val();
+        
+        if (data) {
+            // 객체를 배열로 변환 (날짜순 정렬)
+            historiesCache = Object.values(data).sort((a, b) => 
+                new Date(b.date) - new Date(a.date)
+            );
+        } else {
+            historiesCache = [];
+        }
+        
+        // 로컬 스토리지 백업
+        localStorage.setItem('jobHistories', JSON.stringify(historiesCache));
+        
+        // UI가 열려있으면 자동 업데이트
+        const historyList = document.getElementById('historyList');
+        if (historyList && historyList.style.display !== 'none') {
+            renderHistoryList();
+        }
+        
+        console.log('☁️ Firebase 데이터 동기화:', historiesCache.length, '개');
+    });
 }
+
+// 페이지 로드 시 Firebase 리스너 시작
+window.addEventListener('load', () => {
+    setTimeout(() => {
+        setupFirebaseListener();
+        console.log('✅ Firebase 실시간 동기화 시작');
+    }, 1000);
+});
 
 
