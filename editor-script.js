@@ -106,7 +106,10 @@ function updatePreview(fieldId) {
         if (text === '') {
             preview.textContent = '공고 제목을 입력하세요';
         } else {
-            preview.textContent = text;
+            // 줄바꿈을 <br> 태그로 변환
+            const lines = text.split('\n');
+            const html = lines.map(line => escapeHtml(line)).join('<br>');
+            preview.innerHTML = html;
         }
         return;
     }
