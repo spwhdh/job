@@ -60,19 +60,12 @@
                     </label>
                     <div class="job-info-grid">
                         <div class="job-info-item">
-                            <label class="sub-label">부서</label>
+                            <div class="sub-label-with-button">
+                                <label class="sub-label">부서</label>
+                                <button class="manage-btn" onclick="openDepartmentModal()">⚙️ 관리</button>
+                            </div>
                             <select id="department" class="department-select">
                                 <option value="">부서 선택</option>
-                                <option value="개발사업부">개발사업부</option>
-                                <option value="마케팅사업부">마케팅사업부</option>
-                                <option value="브랜드사업부">브랜드사업부</option>
-                                <option value="콘텐츠사업부">콘텐츠사업부</option>
-                                <option value="경영지원실">경영지원실</option>
-                                <option value="그로스실">그로스실</option>
-                                <option value="기업부설연구실">기업부설연구실</option>
-                                <option value="디자인실">디자인실</option>
-                                <option value="핫셀러 일본">핫셀러 일본</option>
-                                <option value="아이돈워너셀">아이돈워너셀</option>
                             </select>
                         </div>
                         <div class="job-info-item">
@@ -256,6 +249,38 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 부서 관리 모달 -->
+    <div id="departmentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>⚙️ 부서 관리</h2>
+                <button class="modal-close" onclick="closeDepartmentModal()">✕</button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="add-department-section">
+                    <h3>📝 부서 추가</h3>
+                    <div class="add-department-form">
+                        <input type="text" id="newDepartmentInput" placeholder="새 부서 이름 입력..." class="department-input">
+                        <button class="add-btn" onclick="addDepartment()">+ 추가</button>
+                    </div>
+                </div>
+                
+                <div class="department-list-section">
+                    <h3>📋 현재 부서 목록</h3>
+                    <div id="departmentList" class="department-list">
+                        <!-- 부서 목록이 여기에 동적으로 추가됩니다 -->
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button class="reset-btn" onclick="resetDepartments()">🔄 초기화</button>
+                <button class="close-btn" onclick="closeDepartmentModal()">닫기</button>
             </div>
         </div>
     </div>

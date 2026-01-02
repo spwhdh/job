@@ -29,6 +29,9 @@ document.addEventListener('DOMContentLoaded', function() {
 - 허위 사실이 발견되는 경우 채용이 취소될 수 있습니다.`
     };
     
+    // 부서 드롭다운 초기화
+    updateDepartmentDropdown();
+    
     // 부서 선택 드롭다운 이벤트 연결
     const departmentSelect = document.getElementById('department');
     if (departmentSelect) {
@@ -41,6 +44,27 @@ document.addEventListener('DOMContentLoaded', function() {
         // 부서 변경 시 저장
         departmentSelect.addEventListener('change', function() {
             localStorage.setItem('department', this.value);
+        });
+    }
+    
+    // 부서 입력란 Enter 키 이벤트
+    const newDeptInput = document.getElementById('newDepartmentInput');
+    if (newDeptInput) {
+        newDeptInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                addDepartment();
+            }
+        });
+    }
+    
+    // 모달 외부 클릭 시 닫기
+    const modal = document.getElementById('departmentModal');
+    if (modal) {
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                closeDepartmentModal();
+            }
         });
     }
     
@@ -1267,4 +1291,196 @@ function selectAllInElement(element) {
     selection.removeAllRanges();
     selection.addRange(range);
 }
+
+// ============ 부서 관리 기능 ============
+
+// 기본 부서 목록
+const DEFAULT_DEPARTMENTS = [
+    '개발사업부',
+    '마케팅사업부',
+    '브랜드사업부',
+    '콘텐츠사업부',
+    '경영지원실',
+    '그로스실',
+    '기업부설연구실',
+    '디자인실',
+    '핫셀러 일본',
+    '아이돈워너셀'
+];
+
+// 부서 목록 불러오기
+function loadDepartments() {
+    const saved = localStorage.getItem('departments');
+    if (saved) {
+        try {
+            return JSON.parse(saved);
+        } catch (e) {
+            console.error('부서 목록 로드 실패:', e);
+            return DEFAULT_DEPARTMENTS;
+        }
+    }
+    return DEFAULT_DEPARTMENTS;
+}
+
+// 부서 목록 저장
+function saveDepartments(departments) {
+    localStorage.setItem('departments', JSON.stringify(departments));
+}
+
+// 부서 드롭다운 업데이트
+function updateDepartmentDropdown() {
+    const select = document.getElementById('department');
+    if (!select) return;
+    
+    const currentValue = select.value;
+    const departments = loadDepartments();
+    
+    // 드롭다운 초기화
+    select.innerHTML = '<option value="">부서 선택</option>';
+    
+    // 부서 목록 추가
+    departments.forEach(dept => {
+        const option = document.createElement('option');
+        option.value = dept;
+        option.textContent = dept;
+        select.appendChild(option);
+    });
+    
+    // 이전 선택값 복원 (목록에 있으면)
+    if (currentValue && departments.includes(currentValue)) {
+        select.value = currentValue;
+    }
+}
+
+// 부서 관리 모달 열기
+function openDepartmentModal() {
+    const modal = document.getElementById('departmentModal');
+    if (modal) {
+        modal.classList.add('show');
+        renderDepartmentList();
+        
+        // 입력란 초기화 및 포커스
+        const input = document.getElementById('newDepartmentInput');
+        if (input) {
+            input.value = '';
+            setTimeout(() => input.focus(), 100);
+        }
+    }
+}
+
+// 부서 관리 모달 닫기
+function closeDepartmentModal() {
+    const modal = document.getElementById('departmentModal');
+    if (modal) {
+        modal.classList.remove('show');
+    }
+}
+
+// 부서 목록 렌더링
+function renderDepartmentList() {
+    const listContainer = document.getElementById('departmentList');
+    if (!listContainer) return;
+    
+    const departments = loadDepartments();
+    
+    if (departments.length === 0) {
+        listContainer.innerHTML = '<div class="empty-list-message">부서가 없습니다. 새 부서를 추가해주세요.</div>';
+        return;
+    }
+    
+    listContainer.innerHTML = '';
+    
+    departments.forEach((dept, index) => {
+        const item = document.createElement('div');
+        item.className = 'department-item';
+        
+        const name = document.createElement('span');
+        name.className = 'department-name';
+        name.textContent = dept;
+        
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'delete-btn';
+        deleteBtn.textContent = '삭제';
+        deleteBtn.onclick = () => deleteDepartment(index);
+        
+        item.appendChild(name);
+        item.appendChild(deleteBtn);
+        listContainer.appendChild(item);
+    });
+}
+
+// 부서 추가
+function addDepartment() {
+    const input = document.getElementById('newDepartmentInput');
+    if (!input) return;
+    
+    const newDept = input.value.trim();
+    
+    if (!newDept) {
+        alert('⚠️ 부서 이름을 입력해주세요.');
+        input.focus();
+        return;
+    }
+    
+    const departments = loadDepartments();
+    
+    // 중복 체크
+    if (departments.includes(newDept)) {
+        alert('⚠️ 이미 존재하는 부서입니다.');
+        input.focus();
+        return;
+    }
+    
+    // 부서 추가
+    departments.push(newDept);
+    saveDepartments(departments);
+    
+    // UI 업데이트
+    renderDepartmentList();
+    updateDepartmentDropdown();
+    
+    // 입력란 초기화
+    input.value = '';
+    input.focus();
+    
+    console.log('✅ 부서 추가됨:', newDept);
+}
+
+// 부서 삭제
+function deleteDepartment(index) {
+    const departments = loadDepartments();
+    const deptName = departments[index];
+    
+    if (!confirm(`"${deptName}" 부서를 삭제하시겠습니까?`)) {
+        return;
+    }
+    
+    // 부서 삭제
+    departments.splice(index, 1);
+    saveDepartments(departments);
+    
+    // UI 업데이트
+    renderDepartmentList();
+    updateDepartmentDropdown();
+    
+    console.log('✅ 부서 삭제됨:', deptName);
+}
+
+// 부서 목록 초기화
+function resetDepartments() {
+    if (!confirm('기본 부서 목록으로 복원하시겠습니까?\n\n현재 목록은 삭제되고 기본 10개 부서로 초기화됩니다.')) {
+        return;
+    }
+    
+    // 기본 목록으로 복원
+    saveDepartments(DEFAULT_DEPARTMENTS);
+    
+    // UI 업데이트
+    renderDepartmentList();
+    updateDepartmentDropdown();
+    
+    alert('✅ 기본 부서 목록으로 복원되었습니다.');
+    console.log('✅ 부서 목록 초기화됨');
+}
+
 
