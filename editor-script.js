@@ -1483,4 +1483,211 @@ function resetDepartments() {
     console.log('✅ 부서 목록 초기화됨');
 }
 
+// ============ 공고 히스토리 기능 ============
+
+// 히스토리 불러오기
+function loadHistories() {
+    const saved = localStorage.getItem('jobHistories');
+    if (saved) {
+        try {
+            return JSON.parse(saved);
+        } catch (e) {
+            console.error('히스토리 로드 실패:', e);
+            return [];
+        }
+    }
+    return [];
+}
+
+// 히스토리 저장
+function saveHistories(histories) {
+    localStorage.setItem('jobHistories', JSON.stringify(histories));
+}
+
+// 현재 공고를 히스토리에 저장
+function saveCurrentHistory() {
+    const department = document.getElementById('department').value;
+    const jobTitle = document.getElementById('job-title').value.trim();
+    
+    // 유효성 검사
+    if (!department) {
+        alert('⚠️ 부서를 먼저 선택해주세요.');
+        document.getElementById('department').focus();
+        return;
+    }
+    
+    if (!jobTitle) {
+        alert('⚠️ 공고 제목을 입력해주세요.');
+        document.getElementById('job-title').focus();
+        return;
+    }
+    
+    // 현재 입력된 모든 데이터 수집
+    const data = {};
+    const textareas = document.querySelectorAll('textarea');
+    textareas.forEach(textarea => {
+        data[textarea.id] = textarea.value;
+    });
+    
+    // 히스토리 객체 생성
+    const history = {
+        id: Date.now().toString(), // 고유 ID
+        department: department,
+        jobTitle: jobTitle,
+        date: new Date().toISOString(),
+        data: data
+    };
+    
+    // 히스토리 목록에 추가
+    const histories = loadHistories();
+    histories.unshift(history); // 최신 항목이 맨 위로
+    
+    // 히스토리 개수 제한 (최대 50개)
+    if (histories.length > 50) {
+        histories.splice(50);
+    }
+    
+    saveHistories(histories);
+    
+    // UI 업데이트
+    renderHistoryList();
+    
+    // 성공 메시지
+    alert('✅ 현재 공고가 히스토리에 저장되었습니다!');
+    console.log('✅ 히스토리 저장됨:', history);
+}
+
+// 히스토리 목록 토글
+function toggleHistoryList() {
+    const historyList = document.getElementById('historyList');
+    const toggleIcon = document.getElementById('toggleHistoryIcon');
+    
+    if (historyList.style.display === 'none') {
+        historyList.style.display = 'block';
+        toggleIcon.textContent = '▲';
+        renderHistoryList();
+    } else {
+        historyList.style.display = 'none';
+        toggleIcon.textContent = '▼';
+    }
+}
+
+// 히스토리 목록 렌더링
+function renderHistoryList() {
+    const listContainer = document.getElementById('historyList');
+    if (!listContainer) return;
+    
+    const histories = loadHistories();
+    
+    if (histories.length === 0) {
+        listContainer.innerHTML = '<div class="history-empty">저장된 히스토리가 없습니다.<br>현재 공고를 저장해보세요!</div>';
+        return;
+    }
+    
+    // 부서별로 그룹화
+    const groupedByDept = {};
+    histories.forEach(history => {
+        const dept = history.department || '부서 미지정';
+        if (!groupedByDept[dept]) {
+            groupedByDept[dept] = [];
+        }
+        groupedByDept[dept].push(history);
+    });
+    
+    // HTML 생성
+    let html = '';
+    Object.keys(groupedByDept).sort().forEach(dept => {
+        html += `<div class="history-department-group">`;
+        html += `<div class="history-department-title">${escapeHtml(dept)}</div>`;
+        
+        groupedByDept[dept].forEach(history => {
+            const date = new Date(history.date);
+            const dateStr = `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+            
+            html += `
+                <div class="history-item">
+                    <div class="history-item-info">
+                        <div class="history-item-title">${escapeHtml(history.jobTitle)}</div>
+                        <div class="history-item-date">${dateStr}</div>
+                    </div>
+                    <div class="history-item-actions">
+                        <button class="history-load-btn" onclick="loadHistory('${history.id}')">불러오기</button>
+                        <button class="history-delete-btn" onclick="deleteHistory('${history.id}')">삭제</button>
+                    </div>
+                </div>
+            `;
+        });
+        
+        html += `</div>`;
+    });
+    
+    listContainer.innerHTML = html;
+}
+
+// 히스토리 불러오기
+function loadHistory(historyId) {
+    const histories = loadHistories();
+    const history = histories.find(h => h.id === historyId);
+    
+    if (!history) {
+        alert('❌ 히스토리를 찾을 수 없습니다.');
+        return;
+    }
+    
+    // 확인 메시지
+    if (!confirm(`"${history.jobTitle}" 공고를 불러오시겠습니까?\n\n현재 작성 중인 내용은 저장되지 않습니다.`)) {
+        return;
+    }
+    
+    // 부서 선택
+    const departmentSelect = document.getElementById('department');
+    if (departmentSelect) {
+        departmentSelect.value = history.department;
+        localStorage.setItem('department', history.department);
+    }
+    
+    // 모든 입력 필드 복원
+    Object.keys(history.data).forEach(fieldId => {
+        const input = document.getElementById(fieldId);
+        if (input) {
+            input.value = history.data[fieldId];
+            localStorage.setItem(fieldId, history.data[fieldId]);
+            updatePreview(fieldId);
+        }
+    });
+    
+    // 미리보기 스타일도 복원 (다시 적용)
+    setTimeout(() => {
+        restorePreviewStyles();
+        saveHistoryState(); // 실행 취소 히스토리에 저장
+    }, 100);
+    
+    alert('✅ 히스토리를 불러왔습니다!');
+    console.log('✅ 히스토리 불러옴:', history);
+}
+
+// 히스토리 삭제
+function deleteHistory(historyId) {
+    const histories = loadHistories();
+    const history = histories.find(h => h.id === historyId);
+    
+    if (!history) {
+        alert('❌ 히스토리를 찾을 수 없습니다.');
+        return;
+    }
+    
+    if (!confirm(`"${history.jobTitle}" 히스토리를 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.`)) {
+        return;
+    }
+    
+    // 히스토리 삭제
+    const updatedHistories = histories.filter(h => h.id !== historyId);
+    saveHistories(updatedHistories);
+    
+    // UI 업데이트
+    renderHistoryList();
+    
+    console.log('✅ 히스토리 삭제됨:', historyId);
+}
+
 
