@@ -56,9 +56,30 @@
             <div class="form-container">
                 <div class="form-section">
                     <label>
-                        <span class="label-title">🖊️공고 제목</span>
+                        <span class="label-title">🖊️공고 정보</span>
                     </label>
-                    <textarea id="job-title" rows="1" spellcheck="false" placeholder="예시: 개발자 인턴 채용"></textarea>
+                    <div class="job-info-grid">
+                        <div class="job-info-item">
+                            <label class="sub-label">부서</label>
+                            <select id="department" class="department-select">
+                                <option value="">부서 선택</option>
+                                <option value="개발사업부">개발사업부</option>
+                                <option value="마케팅사업부">마케팅사업부</option>
+                                <option value="브랜드사업부">브랜드사업부</option>
+                                <option value="콘텐츠사업부">콘텐츠사업부</option>
+                                <option value="경영지원실">경영지원실</option>
+                                <option value="그로스실">그로스실</option>
+                                <option value="기업부설연구실">기업부설연구실</option>
+                                <option value="디자인실">디자인실</option>
+                                <option value="핫셀러 일본">핫셀러 일본</option>
+                                <option value="아이돈워너셀">아이돈워너셀</option>
+                            </select>
+                        </div>
+                        <div class="job-info-item">
+                            <label class="sub-label">공고 제목</label>
+                            <textarea id="job-title" rows="1" spellcheck="false" placeholder="예시: 개발자 인턴 채용"></textarea>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="form-section">

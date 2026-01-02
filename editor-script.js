@@ -29,6 +29,21 @@ document.addEventListener('DOMContentLoaded', function() {
 - 허위 사실이 발견되는 경우 채용이 취소될 수 있습니다.`
     };
     
+    // 부서 선택 드롭다운 이벤트 연결
+    const departmentSelect = document.getElementById('department');
+    if (departmentSelect) {
+        // 저장된 부서 값 복원
+        const savedDepartment = localStorage.getItem('department');
+        if (savedDepartment) {
+            departmentSelect.value = savedDepartment;
+        }
+        
+        // 부서 변경 시 저장
+        departmentSelect.addEventListener('change', function() {
+            localStorage.setItem('department', this.value);
+        });
+    }
+    
     // 모든 textarea에 실시간 업데이트 이벤트 연결
     const textareas = document.querySelectorAll('textarea');
     textareas.forEach(textarea => {
@@ -209,6 +224,12 @@ function escapeHtml(text) {
 
 // 자동 저장 함수
 function autoSave() {
+    // 부서 선택 저장
+    const departmentSelect = document.getElementById('department');
+    if (departmentSelect) {
+        localStorage.setItem('department', departmentSelect.value);
+    }
+    
     const textareas = document.querySelectorAll('textarea');
     textareas.forEach(textarea => {
         localStorage.setItem(textarea.id, textarea.value);
