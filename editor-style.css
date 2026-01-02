@@ -135,6 +135,7 @@ body {
     display: grid;
     grid-template-columns: 1fr 2fr;
     gap: 16px;
+    align-items: end; /* 하단 끝을 맞춤 */
 }
 
 .job-info-item {
@@ -902,6 +903,7 @@ body {
     .job-info-grid {
         grid-template-columns: 1fr;
         gap: 12px;
+        align-items: end; /* 하단 끝을 맞춤 */
     }
 }
 
@@ -913,24 +915,28 @@ body {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 8px;
+    min-height: 21px; /* sub-label과 동일한 높이 유지 */
 }
 
 .manage-btn {
-    background: #F5F6F8;
+    background: transparent;
     color: #646A73;
-    border: 1px solid #DEE0E3;
-    padding: 4px 12px;
-    border-radius: 4px;
-    font-size: 12px;
+    border: none;
+    padding: 2px 8px;
+    border-radius: 0;
+    font-size: 11px;
     font-weight: 500;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: color 0.2s ease;
+    flex-shrink: 0;
+    outline: none;
+    box-shadow: none;
 }
 
 .manage-btn:hover {
-    background: #3370FF;
-    color: white;
-    border-color: #3370FF;
+    background: transparent;
+    color: #3370FF;
+    border: none;
 }
 
 /* 모달 */
