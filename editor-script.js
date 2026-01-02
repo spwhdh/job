@@ -1635,7 +1635,7 @@ async function toggleHistoryList() {
     }
 }
 
-// 히스토리 목록 렌더링 (Firebase)
+// 히스토리 목록 렌더링 (Firebase) - 부서별 드롭다운
 async function renderHistoryList() {
     const listContainer = document.getElementById('historyList');
     if (!listContainer) return;
@@ -1657,11 +1657,24 @@ async function renderHistoryList() {
         groupedByDept[dept].push(history);
     });
     
-    // HTML 생성
+    // HTML 생성 (부서별 드롭다운)
     let html = '';
     Object.keys(groupedByDept).sort().forEach(dept => {
+        const deptId = 'dept-' + dept.replace(/[^a-zA-Z0-9]/g, '-');
+        const count = groupedByDept[dept].length;
+        
         html += `<div class="history-department-group">`;
-        html += `<div class="history-department-title">${escapeHtml(dept)}</div>`;
+        html += `
+            <div class="history-department-title" onclick="toggleDepartment('${deptId}')">
+                <div class="history-department-title-text">
+                    <span class="history-department-arrow" id="${deptId}-arrow">▶</span>
+                    <span>${escapeHtml(dept)}</span>
+                    <span class="history-department-count">${count}개</span>
+                </div>
+            </div>
+        `;
+        
+        html += `<div class="history-department-items" id="${deptId}">`;
         
         groupedByDept[dept].forEach(history => {
             const date = new Date(history.date);
@@ -1682,9 +1695,28 @@ async function renderHistoryList() {
         });
         
         html += `</div>`;
+        html += `</div>`;
     });
     
     listContainer.innerHTML = html;
+}
+
+// 부서별 히스토리 토글
+function toggleDepartment(deptId) {
+    const itemsContainer = document.getElementById(deptId);
+    const arrow = document.getElementById(deptId + '-arrow');
+    
+    if (!itemsContainer || !arrow) return;
+    
+    if (itemsContainer.classList.contains('expanded')) {
+        itemsContainer.classList.remove('expanded');
+        arrow.textContent = '▶';
+        arrow.classList.remove('expanded');
+    } else {
+        itemsContainer.classList.add('expanded');
+        arrow.textContent = '▼';
+        arrow.classList.add('expanded');
+    }
 }
 
 // 히스토리 불러오기

@@ -1197,18 +1197,18 @@ body {
 /* ============ 공고 히스토리 기능 ============ */
 
 .history-section {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border: none;
-    color: white;
+    background: white;
+    border: 1px solid #E5E6EB;
 }
 
 .history-section .label-title {
-    color: white;
-    font-size: 16px;
+    color: #1F2329;
+    font-size: 15px;
 }
 
 .history-section .label-subtitle {
-    color: rgba(255, 255, 255, 0.9);
+    color: #646A73;
+    font-size: 13px;
 }
 
 .history-controls {
@@ -1220,29 +1220,29 @@ body {
 
 .save-history-btn {
     flex: 1;
-    background: white;
-    color: #667eea;
+    background: #3370FF;
+    color: white;
     border: none;
     padding: 12px 20px;
     border-radius: 6px;
     font-size: 14px;
-    font-weight: 600;
+    font-weight: 500;
     cursor: pointer;
     transition: all 0.2s ease;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 8px rgba(51, 112, 255, 0.2);
 }
 
 .save-history-btn:hover {
-    background: #f0f0f0;
+    background: #2B5FE6;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 12px rgba(51, 112, 255, 0.3);
 }
 
 .toggle-history-btn {
     flex: 1;
-    background: rgba(255, 255, 255, 0.2);
-    color: white;
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    background: white;
+    color: #1F2329;
+    border: 1px solid #DEE0E3;
     padding: 12px 20px;
     border-radius: 6px;
     font-size: 14px;
@@ -1252,18 +1252,18 @@ body {
 }
 
 .toggle-history-btn:hover {
-    background: rgba(255, 255, 255, 0.3);
-    border-color: rgba(255, 255, 255, 0.5);
+    background: #F5F6F8;
+    border-color: #3370FF;
 }
 
 .history-list {
     margin-top: 16px;
-    background: rgba(255, 255, 255, 0.1);
+    background: #FAFBFC;
     border-radius: 8px;
     padding: 16px;
     max-height: 400px;
     overflow-y: auto;
-    backdrop-filter: blur(10px);
+    border: 1px solid #E5E6EB;
 }
 
 .history-list::-webkit-scrollbar {
@@ -1271,28 +1271,28 @@ body {
 }
 
 .history-list::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.1);
+    background: #F5F6F8;
     border-radius: 3px;
 }
 
 .history-list::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.3);
+    background: #C9CDD4;
     border-radius: 3px;
 }
 
 .history-list::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.5);
+    background: #8F959E;
 }
 
 .history-empty {
     text-align: center;
     padding: 30px 20px;
-    color: rgba(255, 255, 255, 0.8);
+    color: #646A73;
     font-size: 14px;
 }
 
 .history-department-group {
-    margin-bottom: 20px;
+    margin-bottom: 12px;
 }
 
 .history-department-group:last-child {
@@ -1302,12 +1302,57 @@ body {
 .history-department-title {
     font-size: 14px;
     font-weight: 600;
-    color: white;
-    margin-bottom: 10px;
-    padding: 8px 12px;
-    background: rgba(255, 255, 255, 0.15);
+    color: #1F2329;
+    padding: 12px 14px;
+    background: white;
     border-radius: 6px;
-    border-left: 3px solid white;
+    border: 1px solid #E5E6EB;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    user-select: none;
+}
+
+.history-department-title:hover {
+    background: #F5F6F8;
+    border-color: #3370FF;
+}
+
+.history-department-title-text {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.history-department-count {
+    font-size: 12px;
+    color: #646A73;
+    font-weight: 500;
+    background: #F5F6F8;
+    padding: 2px 8px;
+    border-radius: 12px;
+}
+
+.history-department-arrow {
+    font-size: 12px;
+    color: #646A73;
+    transition: transform 0.2s ease;
+}
+
+.history-department-arrow.expanded {
+    transform: rotate(90deg);
+}
+
+.history-department-items {
+    margin-top: 8px;
+    padding-left: 0;
+    display: none;
+}
+
+.history-department-items.expanded {
+    display: block;
 }
 
 .history-item {
@@ -1316,17 +1361,17 @@ body {
     align-items: center;
     padding: 12px 14px;
     margin-bottom: 8px;
-    background: rgba(255, 255, 255, 0.95);
+    background: white;
     border-radius: 6px;
-    cursor: pointer;
+    border: 1px solid #E5E6EB;
     transition: all 0.2s ease;
     gap: 12px;
 }
 
 .history-item:hover {
-    background: white;
-    transform: translateX(4px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    background: #F5F6F8;
+    border-color: #C9CDD4;
+    box-shadow: 0 2px 8px rgba(31, 35, 41, 0.04);
 }
 
 .history-item:last-child {
