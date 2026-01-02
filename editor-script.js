@@ -311,9 +311,9 @@ function restorePreviewStyles() {
 
 // 디폴트 HTML 값 적용 (처음 로드 시에만)
 function applyDefaultHTMLValues() {
-    const STYLE_VERSION = '1.3'; // 스타일 버전 (스타일 변경 시 증가)
+    const STYLE_VERSION = '1.4'; // 스타일 버전 (스타일 변경 시 증가)
     const defaultHTMLValues = {
-        'preview-requirements-note': `<p>핫셀러는 성공을 위해 누구보다 노력할 수 있는 분들을 위해</p><p>인센티브, 지분 증여 등 성과에 따른 보상과 다양한 복지 혜택이 주어집니다.</p><p><strong>하지만 목표 달성을 위해 높은 업무 강도와 잦은 야근이 요구되며,</strong></p><p>꾸준한 직무 역량 개발이 필수적입니다. 워라밸을 중시하거나 공무원과 같은</p><p>안정적인 직장을 선호하는 분에게 맞지 않을 수 있습니다.</p><p><span style="color: #4169E1; font-weight: bold;">이런 점을 감안했을 때,</span></p><p><span style="color: #4169E1; font-weight: bold;">지원자분께서 우리 회사와 잘 어울린다고 생각하시나요?</span></p>`,
+        'preview-requirements-note': `<p>핫셀러는 성공을 위해 누구보다 노력할 수 있는 분들을 위해</p><p>인센티브, 지분 증여 등 성과에 따른 보상과 다양한 복지 혜택이 주어집니다.</p><p><strong>하지만 목표 달성을 위해 높은 업무 강도와 잦은 야근이 요구되며,</strong></p><p>꾸준한 직무 역량 개발이 필수적입니다. 워라밸을 중시하거나 공무원과 같은</p><p>안정적인 직장을 선호하는 분에게 맞지 않을 수 있습니다.</p><p><span style="color: #0062E0; font-weight: bold;">이런 점을 감안했을 때,</span></p><p><span style="color: #0062E0; font-weight: bold;">지원자분께서 우리 회사와 잘 어울린다고 생각하시나요?</span></p>`,
         'preview-additional-info': `<ul><li>포트폴리오 필수 첨부 (누락 시 서류 심사에서 자동 불합격)</li><li>허위 사실이 발견되는 경우 채용이 취소될 수 있습니다.</li></ul>`
     };
     
@@ -1611,13 +1611,33 @@ async function saveCurrentHistory() {
         data[textarea.id] = textarea.value;
     });
     
+    // 미리보기 영역의 HTML 스타일도 함께 저장
+    const previewHTML = {};
+    const editableFields = [
+        'preview-job-title',
+        'preview-recommend',
+        'preview-duties',
+        'preview-requirements',
+        'preview-preferred',
+        'preview-requirements-note',
+        'preview-additional-info'
+    ];
+    
+    editableFields.forEach(fieldId => {
+        const element = document.getElementById(fieldId);
+        if (element) {
+            previewHTML[fieldId] = element.innerHTML;
+        }
+    });
+    
     // 히스토리 객체 생성
     const history = {
         id: Date.now().toString(), // 고유 ID
         department: department,
         jobTitle: jobTitle,
         date: new Date().toISOString(),
-        data: data
+        data: data,
+        previewHTML: previewHTML  // 미리보기 HTML 추가
     };
     
     try {
@@ -1780,14 +1800,24 @@ async function loadHistory(historyId) {
         if (input) {
             input.value = history.data[fieldId];
             localStorage.setItem(fieldId, history.data[fieldId]);
-            updatePreview(fieldId);
         }
     });
     
-    // 미리보기 스타일도 복원 (다시 적용)
+    // 미리보기 업데이트 - 항상 입력 필드 기준으로 재생성
+    Object.keys(history.data).forEach(fieldId => {
+        updatePreview(fieldId);
+    });
+    
+    // 미리보기 스타일 복원 (포맷팅, 색상 등)
+    if (history.previewHTML) {
+        setTimeout(() => {
+            restorePreviewStyles();
+        }, 100);
+    }
+    
+    // 실행 취소 히스토리에 저장
     setTimeout(() => {
-        restorePreviewStyles();
-        saveHistoryState(); // 실행 취소 히스토리에 저장
+        saveHistoryState();
     }, 100);
     
     alert('✅ 히스토리를 불러왔습니다!');
