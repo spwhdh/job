@@ -1552,9 +1552,12 @@ function saveCurrentHistory() {
     // UI 업데이트
     renderHistoryList();
     
+    // 자동으로 히스토리 파일 다운로드
+    exportHistories();
+    
     // 성공 메시지
-    alert('✅ 현재 공고가 히스토리에 저장되었습니다!');
-    console.log('✅ 히스토리 저장됨:', history);
+    alert('✅ 현재 공고가 히스토리에 저장되었습니다!\n📥 히스토리 파일도 자동으로 다운로드되었습니다.');
+    console.log('✅ 히스토리 저장 및 내보내기 완료:', history);
 }
 
 // 히스토리 목록 토글
@@ -1688,6 +1691,41 @@ function deleteHistory(historyId) {
     renderHistoryList();
     
     console.log('✅ 히스토리 삭제됨:', historyId);
+}
+
+// 히스토리를 JSON 파일로 내보내기 (자동 다운로드)
+function exportHistories() {
+    const histories = loadHistories();
+    
+    if (histories.length === 0) {
+        console.log('내보낼 히스토리가 없습니다.');
+        return;
+    }
+    
+    // JSON 문자열로 변환 (보기 좋게 포맷)
+    const jsonData = JSON.stringify(histories, null, 2);
+    
+    // Blob 생성
+    const blob = new Blob([jsonData], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    
+    // 다운로드 링크 생성 및 자동 클릭
+    const link = document.createElement('a');
+    const date = new Date();
+    const filename = `채용공고_히스토리_${date.getFullYear()}${String(date.getMonth()+1).padStart(2,'0')}${String(date.getDate()).padStart(2,'0')}_${String(date.getHours()).padStart(2,'0')}${String(date.getMinutes()).padStart(2,'0')}.json`;
+    
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    // URL 메모리 해제
+    setTimeout(() => {
+        URL.revokeObjectURL(url);
+    }, 100);
+    
+    console.log('✅ 히스토리 파일 다운로드 완료:', filename);
 }
 
 
