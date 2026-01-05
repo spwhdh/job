@@ -1899,3 +1899,161 @@ window.addEventListener('load', () => {
 });
 
 
+// ============ Gemini AI 자동 생성 기능 ============
+
+// Gemini API 호출 함수
+async function callGeminiAPI(prompt, type) {
+    try {
+        console.log('🤖 Gemini API 호출 시작:', type);
+        
+        const response = await fetch('/api/gemini', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ 
+                prompt: prompt,
+                type: type 
+            })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'API 호출 실패');
+        }
+
+        const data = await response.json();
+        
+        if (data.success && data.text) {
+            console.log('✅ Gemini API 성공');
+            return data.text;
+        } else {
+            throw new Error('응답 형식이 올바르지 않습니다.');
+        }
+        
+    } catch (error) {
+        console.error('❌ Gemini API 오류:', error);
+        throw error;
+    }
+}
+
+// 프롬프트 생성 함수
+function generatePrompt(type) {
+    const department = document.getElementById('department').value || '회사';
+    const jobTitle = document.getElementById('job-title').value || '직원';
+    
+    const prompts = {
+        'recommend': `${department}에서 ${jobTitle} 채용공고를 작성 중입니다.
+"이런분들에게 추천합니다" 섹션에 들어갈 내용을 5-7개 항목으로 작성해주세요.
+각 항목은 한 줄로, 간결하고 구체적으로 작성해주세요.
+예시처럼 "~하신 분", "~에 관심이 많으신 분" 형식으로 작성해주세요.`,
+
+        'duties': `${department}에서 ${jobTitle} 채용공고를 작성 중입니다.
+"담당 업무" 섹션에 들어갈 내용을 5-7개 항목으로 작성해주세요.
+각 항목은 한 줄로, 구체적이고 실무적으로 작성해주세요.`,
+
+        'requirements': `${department}에서 ${jobTitle} 채용공고를 작성 중입니다.
+"필수 자격" 섹션에 들어갈 내용을 5-7개 항목으로 작성해주세요.
+각 항목은 한 줄로, 필수적인 자격요건만 간결하게 작성해주세요.`,
+
+        'preferred': `${department}에서 ${jobTitle} 채용공고를 작성 중입니다.
+"우대 사항" 섹션에 들어갈 내용을 5-7개 항목으로 작성해주세요.
+각 항목은 한 줄로, 우대할 만한 경험이나 역량을 간결하게 작성해주세요.`
+    };
+    
+    return prompts[type] || prompts['duties'];
+}
+
+// AI로 내용 생성 (특정 필드)
+async function generateWithAI(fieldId) {
+    const textarea = document.getElementById(fieldId);
+    if (!textarea) {
+        console.error('Textarea not found:', fieldId);
+        return;
+    }
+    
+    // 버튼 비활성화 및 로딩 표시
+    const button = document.querySelector(`button[onclick="generateWithAI('${fieldId}')"]`);
+    if (button) {
+        button.disabled = true;
+        button.textContent = '⏳ AI 생성 중...';
+    }
+    
+    try {
+        // 프롬프트 생성
+        const prompt = generatePrompt(fieldId);
+        
+        // Gemini API 호출
+        const result = await callGeminiAPI(prompt, fieldId);
+        
+        // 결과를 textarea에 입력
+        textarea.value = result.trim();
+        
+        // 미리보기 업데이트
+        updatePreview(fieldId);
+        
+        // 로컬 스토리지 저장
+        localStorage.setItem(fieldId, textarea.value);
+        
+        // 성공 메시지
+        if (button) {
+            button.textContent = '✅ 완료!';
+            setTimeout(() => {
+                button.textContent = '✨ AI로 작성';
+                button.disabled = false;
+            }, 2000);
+        }
+        
+        console.log('✅ AI 생성 완료:', fieldId);
+        
+    } catch (error) {
+        console.error('AI 생성 실패:', error);
+        alert('❌ AI 생성에 실패했습니다.\n\n' + error.message + '\n\nVercel 환경 변수에 GEMINI_API_KEY가 설정되어 있는지 확인해주세요.');
+        
+        // 버튼 복원
+        if (button) {
+            button.textContent = '✨ AI로 작성';
+            button.disabled = false;
+        }
+    }
+}
+
+// 모든 섹션을 AI로 한 번에 생성
+async function generateAllWithAI() {
+    const fields = ['recommend', 'duties', 'requirements', 'preferred'];
+    
+    if (!confirm('🤖 AI로 모든 섹션을 자동 생성하시겠습니까?\n\n현재 작성된 내용이 모두 대체됩니다.')) {
+        return;
+    }
+    
+    const button = document.querySelector('.generate-all-btn');
+    if (button) {
+        button.disabled = true;
+        button.textContent = '⏳ 전체 생성 중...';
+    }
+    
+    let successCount = 0;
+    
+    for (const fieldId of fields) {
+        try {
+            console.log(`🤖 ${fieldId} 생성 중...`);
+            await generateWithAI(fieldId);
+            successCount++;
+            
+            // 각 요청 사이에 1초 대기 (API 제한 방지)
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+        } catch (error) {
+            console.error(`${fieldId} 생성 실패:`, error);
+        }
+    }
+    
+    if (button) {
+        button.textContent = '🚀 전체 생성';
+        button.disabled = false;
+    }
+    
+    alert(`✅ AI 생성 완료!\n\n${successCount}/${fields.length}개 섹션이 생성되었습니다.`);
+}
+
+

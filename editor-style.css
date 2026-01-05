@@ -1443,3 +1443,77 @@ body {
     box-shadow: 0 2px 8px rgba(255, 77, 79, 0.3);
 }
 
+/* ============ AI 생성 버튼 스타일 ============ */
+.ai-generate-btn {
+    padding: 6px 14px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+    margin-left: 12px;
+    white-space: nowrap;
+}
+
+.ai-generate-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.5);
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+}
+
+.ai-generate-btn:active {
+    transform: translateY(0);
+}
+
+.ai-generate-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* label 내 버튼 배치 */
+.form-section label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.form-group-item label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+/* 전체 생성 버튼 */
+.generate-all-btn {
+    padding: 12px 24px;
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(245, 87, 108, 0.4);
+    margin: 16px 0;
+    width: 100%;
+}
+
+.generate-all-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 16px rgba(245, 87, 108, 0.6);
+}
+
+.generate-all-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
