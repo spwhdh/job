@@ -385,6 +385,22 @@ async function downloadImage() {
         }
         
         const element = document.getElementById('preview');
+        
+        // 이미지가 모두 로드될 때까지 대기
+        const images = element.querySelectorAll('img');
+        const imageLoadPromises = Array.from(images).map(img => {
+            if (img.complete) {
+                return Promise.resolve();
+            }
+            return new Promise((resolve, reject) => {
+                img.onload = resolve;
+                img.onerror = reject;
+            });
+        });
+        
+        await Promise.all(imageLoadPromises);
+        console.log('✅ 모든 이미지 로드 완료');
+        
         const originalTransform = element.style.transform;
         element.style.transform = 'scale(1)'; // 다운로드 시 원본 크기로
         
@@ -455,6 +471,22 @@ async function copyImageLink() {
         }
         
         const element = document.getElementById('preview');
+        
+        // 이미지가 모두 로드될 때까지 대기
+        const images = element.querySelectorAll('img');
+        const imageLoadPromises = Array.from(images).map(img => {
+            if (img.complete) {
+                return Promise.resolve();
+            }
+            return new Promise((resolve, reject) => {
+                img.onload = resolve;
+                img.onerror = reject;
+            });
+        });
+        
+        await Promise.all(imageLoadPromises);
+        console.log('✅ 모든 이미지 로드 완료');
+        
         const originalTransform = element.style.transform;
         element.style.transform = 'scale(1)';
         
