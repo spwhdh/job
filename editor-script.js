@@ -25,6 +25,7 @@ document.addEventListener('DOMContentLoaded', function() {
 지원자분께서 우리 회사와 잘 어울린다고 생각하시나요?`,
         'work-hours': '오전 9시 30분 ~ 오후 6시 30분',
         'work-location': '서울특별시 동대문구 장한로6 605호',
+        'salary-info': '면접 후 협의 (직전연봉 or 희망연봉 필수 기재)',
         'additional-info': `- 포트폴리오 필수 첨부 (누락 시 서류 심사에서 자동 불합격)
 - 허위 사실이 발견되는 경우 채용이 취소될 수 있습니다.`
     };
@@ -209,6 +210,19 @@ function updatePreview(fieldId) {
         return;
     }
     
+    // 연봉 및 고용 형태 처리
+    if (fieldId === 'salary-info') {
+        const preview = document.getElementById('preview-salary-info');
+        if (!preview) return;
+        
+        if (text === '') {
+            preview.innerHTML = '<span class="highlight-text"><span class="blue-text">면접 후 협의</span> (직전연봉 or 희망연봉 필수 기재)</span>'; // 기본값
+        } else {
+            preview.innerHTML = `<span class="highlight-text">${escapeHtml(text)}</span>`;
+        }
+        return;
+    }
+    
     // 일반 리스트 형식 처리
     if (text === '') {
         preview.innerHTML = '<p class="placeholder-text">내용을 입력해주세요</p>';
@@ -274,6 +288,7 @@ function savePreviewStyles() {
         'preview-requirements',
         'preview-preferred',
         'preview-requirements-note',
+        'preview-salary-info',
         'preview-additional-info'
     ];
     
@@ -294,6 +309,7 @@ function restorePreviewStyles() {
         'preview-requirements',
         'preview-preferred',
         'preview-requirements-note',
+        'preview-salary-info',
         'preview-additional-info'
     ];
     
@@ -687,6 +703,7 @@ function enableDirectEdit() {
         { previewId: 'preview-requirements-note', inputId: 'requirements-note' },
         { previewId: 'preview-work-hours', inputId: 'work-hours' },
         { previewId: 'preview-work-location', inputId: 'work-location' },
+        { previewId: 'preview-salary-info', inputId: 'salary-info' },
         { previewId: 'preview-additional-info', inputId: 'additional-info' }
     ];
     
@@ -791,8 +808,8 @@ function syncToInput(inputId, previewId) {
         return;
     }
     
-    // 공고 제목, 근무 시간, 근무지는 텍스트 그대로 동기화
-    if (inputId === 'job-title' || inputId === 'work-hours' || inputId === 'work-location') {
+    // 공고 제목, 근무 시간, 근무지, 연봉 정보는 텍스트 그대로 동기화
+    if (inputId === 'job-title' || inputId === 'work-hours' || inputId === 'work-location' || inputId === 'salary-info') {
         input.value = preview.textContent.trim();
         localStorage.setItem(inputId, input.value);
         return;
@@ -1206,6 +1223,7 @@ function saveHistoryState() {
         'preview-requirements-note',
         'preview-work-hours',
         'preview-work-location',
+        'preview-salary-info',
         'preview-additional-info'
     ];
     
@@ -1247,6 +1265,7 @@ function undo() {
         'preview-requirements-note',
         'preview-work-hours',
         'preview-work-location',
+        'preview-salary-info',
         'preview-additional-info'
     ];
     
@@ -1297,6 +1316,7 @@ function redo() {
         'preview-requirements-note',
         'preview-work-hours',
         'preview-work-location',
+        'preview-salary-info',
         'preview-additional-info'
     ];
     
@@ -1341,6 +1361,7 @@ function syncAllFieldsToInput() {
         { previewId: 'preview-requirements-note', inputId: 'requirements-note' },
         { previewId: 'preview-work-hours', inputId: 'work-hours' },
         { previewId: 'preview-work-location', inputId: 'work-location' },
+        { previewId: 'preview-salary-info', inputId: 'salary-info' },
         { previewId: 'preview-additional-info', inputId: 'additional-info' }
     ];
     
@@ -1652,6 +1673,7 @@ async function saveCurrentHistory() {
         'preview-requirements',
         'preview-preferred',
         'preview-requirements-note',
+        'preview-salary-info',
         'preview-additional-info'
     ];
     
