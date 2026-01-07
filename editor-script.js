@@ -390,7 +390,7 @@ async function downloadImage() {
         
         const canvas = await html2canvas(element, {
             backgroundColor: '#ffffff',
-            scale: 2, // 고해상도
+            scale: 4, // 초고해상도 (화질 개선)
             logging: false,
             useCORS: true,
             allowTaint: true
@@ -461,7 +461,7 @@ async function copyImageLink() {
         // 캔버스 생성
         const canvas = await html2canvas(element, {
             backgroundColor: '#ffffff',
-            scale: 2,
+            scale: 4, // 초고해상도 (화질 개선)
             logging: false,
             useCORS: true,
             allowTaint: true
