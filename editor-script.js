@@ -962,8 +962,13 @@ function initFloatingToolbar() {
     
     // 다른 곳 클릭하면 툴바 숨김 (색상 선택기 제외)
     document.addEventListener('mousedown', (e) => {
+        // 툴바 내부를 클릭한 경우 (더 확실한 체크)
+        if (e.target.closest('.floating-toolbar')) {
+            return;
+        }
+        
         // 툴바 내부를 클릭한 경우
-        if (floatingToolbar.contains(e.target)) {
+        if (floatingToolbar && floatingToolbar.contains(e.target)) {
             return;
         }
         
@@ -975,6 +980,14 @@ function initFloatingToolbar() {
         // 색상 선택기 팝업 내부를 클릭한 경우 (브라우저 네이티브 color picker)
         // color input 요소의 경우 클릭해도 툴바 유지
         if (e.target.type === 'color' || e.target.closest('input[type="color"]')) {
+            return;
+        }
+        
+        // 폰트 사이즈, 폰트 패밀리 등 툴바 컨트롤 클릭 시
+        if (e.target.type === 'number' || 
+            e.target.tagName === 'SELECT' ||
+            e.target.id === 'fontSize' || 
+            e.target.id === 'fontFamily') {
             return;
         }
         
