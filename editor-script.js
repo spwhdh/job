@@ -1,6 +1,7 @@
 // 전역 변수
 let zoomLevel = 1;
 let currentSelection = null;
+let savedRange = null; // 텍스트 선택 영역 저장
 let floatingToolbar = null;
 
 // 실행 취소/다시 실행을 위한 히스토리
@@ -872,32 +873,81 @@ function initFloatingToolbar() {
     // 폰트 변경
     const fontFamilySelect = document.getElementById('fontFamily');
     fontFamilySelect.addEventListener('mousedown', (e) => {
-        // 선택 영역 유지를 위해 mousedown 방지하지 않음 (드롭다운은 정상 작동 필요)
+        // 드롭다운 열 때 Range 저장
+        const selection = window.getSelection();
+        if (selection.rangeCount > 0) {
+            savedRange = selection.getRangeAt(0).cloneRange();
+            currentSelection = selection;
+        }
     });
     fontFamilySelect.addEventListener('change', (e) => {
         applyStyle('fontFamily', e.target.value);
+        // 사용 후 Range 초기화
+        setTimeout(() => {
+            savedRange = null;
+        }, 200);
     });
     
     // 폰트 크기 변경
     const fontSizeInput = document.getElementById('fontSize');
     fontSizeInput.addEventListener('mousedown', (e) => {
-        // 텍스트 선택이 해제되지 않도록 mousedown 시 선택 영역 저장
-        if (!currentSelection && window.getSelection().rangeCount > 0) {
-            currentSelection = window.getSelection();
+        // 텍스트 선택이 해제되지 않도록 Range 저장
+        const selection = window.getSelection();
+        if (selection.rangeCount > 0) {
+            savedRange = selection.getRangeAt(0).cloneRange();
+            currentSelection = selection;
+        }
+    });
+    fontSizeInput.addEventListener('focus', (e) => {
+        // 포커스 시에도 Range 저장
+        const selection = window.getSelection();
+        if (selection.rangeCount > 0 && !savedRange) {
+            savedRange = selection.getRangeAt(0).cloneRange();
+            currentSelection = selection;
         }
     });
     fontSizeInput.addEventListener('change', (e) => {
         applyStyle('fontSize', e.target.value + 'px');
+        // 사용 후 Range 초기화
+        setTimeout(() => {
+            savedRange = null;
+        }, 200);
     });
     
     // 텍스트 색상
-    document.getElementById('textColor').addEventListener('input', (e) => {
+    const textColorInput = document.getElementById('textColor');
+    textColorInput.addEventListener('mousedown', (e) => {
+        // 색상 선택기 열 때 Range 저장
+        const selection = window.getSelection();
+        if (selection.rangeCount > 0) {
+            savedRange = selection.getRangeAt(0).cloneRange();
+            currentSelection = selection;
+        }
+    });
+    textColorInput.addEventListener('change', (e) => {
         applyStyle('color', e.target.value);
+        // 사용 후 Range 초기화
+        setTimeout(() => {
+            savedRange = null;
+        }, 200);
     });
     
     // 배경색
-    document.getElementById('bgColor').addEventListener('input', (e) => {
+    const bgColorInput = document.getElementById('bgColor');
+    bgColorInput.addEventListener('mousedown', (e) => {
+        // 색상 선택기 열 때 Range 저장
+        const selection = window.getSelection();
+        if (selection.rangeCount > 0) {
+            savedRange = selection.getRangeAt(0).cloneRange();
+            currentSelection = selection;
+        }
+    });
+    bgColorInput.addEventListener('change', (e) => {
         applyStyle('backgroundColor', e.target.value);
+        // 사용 후 Range 초기화
+        setTimeout(() => {
+            savedRange = null;
+        }, 200);
     });
     
     // 텍스트 색상 제거 버튼
@@ -1116,18 +1166,18 @@ function applyStyle(property, value) {
     let selection = window.getSelection();
     let range;
     
-    // 현재 선택이 없으면 저장된 선택 영역 사용
-    if (selection.rangeCount === 0 && currentSelection) {
-        selection = currentSelection;
-    }
-    
-    if (!selection || selection.rangeCount === 0) {
+    // 현재 선택이 없으면 저장된 Range 사용
+    if (selection.rangeCount === 0 && savedRange) {
+        selection.removeAllRanges();
+        selection.addRange(savedRange);
+        range = savedRange;
+    } else if (selection.rangeCount > 0) {
+        range = selection.getRangeAt(0);
+    } else {
         console.log('선택된 텍스트가 없습니다.');
         showToast('⚠️ 텍스트를 먼저 선택해주세요');
         return;
     }
-    
-    range = selection.getRangeAt(0);
     
     // 색상 변경 시도 시, fixed-color 클래스가 있는지 확인
     if (property === 'color') {
@@ -1281,6 +1331,23 @@ function saveHistoryState() {
             state[fieldId] = element.innerHTML;
         }
     });
+    
+    // 이전 상태와 동일하면 저장하지 않음 (중복 방지)
+    if (undoHistory.length > 0) {
+        const lastState = undoHistory[undoHistory.length - 1];
+        let isDifferent = false;
+        
+        for (let fieldId in state) {
+            if (state[fieldId] !== lastState[fieldId]) {
+                isDifferent = true;
+                break;
+            }
+        }
+        
+        if (!isDifferent) {
+            return; // 동일한 상태는 저장하지 않음
+        }
+    }
     
     // 현재 상태를 히스토리에 추가
     undoHistory.push(state);
