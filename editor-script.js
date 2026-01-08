@@ -870,12 +870,23 @@ function initFloatingToolbar() {
     document.getElementById('underlineBtn').addEventListener('click', () => applyFormat('underline'));
     
     // 폰트 변경
-    document.getElementById('fontFamily').addEventListener('change', (e) => {
+    const fontFamilySelect = document.getElementById('fontFamily');
+    fontFamilySelect.addEventListener('mousedown', (e) => {
+        // 선택 영역 유지를 위해 mousedown 방지하지 않음 (드롭다운은 정상 작동 필요)
+    });
+    fontFamilySelect.addEventListener('change', (e) => {
         applyStyle('fontFamily', e.target.value);
     });
     
     // 폰트 크기 변경
-    document.getElementById('fontSize').addEventListener('change', (e) => {
+    const fontSizeInput = document.getElementById('fontSize');
+    fontSizeInput.addEventListener('mousedown', (e) => {
+        // 텍스트 선택이 해제되지 않도록 mousedown 시 선택 영역 저장
+        if (!currentSelection && window.getSelection().rangeCount > 0) {
+            currentSelection = window.getSelection();
+        }
+    });
+    fontSizeInput.addEventListener('change', (e) => {
         applyStyle('fontSize', e.target.value + 'px');
     });
     
@@ -1102,10 +1113,21 @@ function applyFormat(command) {
 
 // 스타일 적용 (색상, 크기, 폰트)
 function applyStyle(property, value) {
-    const selection = window.getSelection();
-    if (selection.rangeCount === 0) return;
+    let selection = window.getSelection();
+    let range;
     
-    const range = selection.getRangeAt(0);
+    // 현재 선택이 없으면 저장된 선택 영역 사용
+    if (selection.rangeCount === 0 && currentSelection) {
+        selection = currentSelection;
+    }
+    
+    if (!selection || selection.rangeCount === 0) {
+        console.log('선택된 텍스트가 없습니다.');
+        showToast('⚠️ 텍스트를 먼저 선택해주세요');
+        return;
+    }
+    
+    range = selection.getRangeAt(0);
     
     // 색상 변경 시도 시, fixed-color 클래스가 있는지 확인
     if (property === 'color') {
@@ -1148,12 +1170,11 @@ function applyStyle(property, value) {
         range.insertNode(wrapper);
     }
     
-    // 선택 해제 및 툴바 유지를 위한 작은 지연
-    setTimeout(() => {
-        const newSelection = window.getSelection();
-        newSelection.removeAllRanges();
-        currentSelection = null;
-    }, 100);
+    // 히스토리 저장
+    setTimeout(() => saveHistoryState(), 100);
+    
+    // 성공 메시지
+    showToast('✓ 스타일 적용됨');
 }
 
 // 텍스트 색상 제거
