@@ -690,6 +690,14 @@ body {
     color: #0062E0;
 }
 
+/* 고정 색상 (변경 불가) */
+.fixed-color {
+    color: #0062E0 !important;
+    font-weight: bold;
+    user-select: text;
+    cursor: text;
+}
+
 /* 추가 안내사항 텍스트 (하단 이미지 아래) */
 .additional-info-text {
     margin-top: 0;

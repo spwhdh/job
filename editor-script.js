@@ -331,9 +331,9 @@ function restorePreviewStyles() {
 
 // 디폴트 HTML 값 적용 (처음 로드 시에만)
 function applyDefaultHTMLValues() {
-    const STYLE_VERSION = '1.4'; // 스타일 버전 (스타일 변경 시 증가)
+    const STYLE_VERSION = '1.5'; // 스타일 버전 (스타일 변경 시 증가)
     const defaultHTMLValues = {
-        'preview-requirements-note': `<p>핫셀러는 성공을 위해 누구보다 노력할 수 있는 분들을 위해</p><p>인센티브, 지분 증여 등 성과에 따른 보상과 다양한 복지 혜택이 주어집니다.</p><p><strong>하지만 목표 달성을 위해 높은 업무 강도와 잦은 야근이 요구되며,</strong></p><p>꾸준한 직무 역량 개발이 필수적입니다. 워라밸을 중시하거나 공무원과 같은</p><p>안정적인 직장을 선호하는 분에게 맞지 않을 수 있습니다.</p><p><span style="color: #0062E0; font-weight: bold;">이런 점을 감안했을 때,</span></p><p><span style="color: #0062E0; font-weight: bold;">지원자분께서 우리 회사와 잘 어울린다고 생각하시나요?</span></p>`,
+        'preview-requirements-note': `<p>핫셀러는 성공을 위해 누구보다 노력할 수 있는 분들을 위해</p><p>인센티브, 지분 증여 등 성과에 따른 보상과 다양한 복지 혜택이 주어집니다.</p><p><strong>하지만 목표 달성을 위해 높은 업무 강도와 잦은 야근이 요구되며,</strong></p><p>꾸준한 직무 역량 개발이 필수적입니다. 워라밸을 중시하거나 공무원과 같은</p><p>안정적인 직장을 선호하는 분에게 맞지 않을 수 있습니다.</p><p><span class="fixed-color" style="color: #0062E0; font-weight: bold;">이런 점을 감안했을 때,</span></p><p><span class="fixed-color" style="color: #0062E0; font-weight: bold;">지원자분께서 우리 회사와 잘 어울린다고 생각하시나요?</span></p>`,
         'preview-additional-info': `<ul><li>포트폴리오 필수 첨부 (누락 시 서류 심사에서 자동 불합격)</li><li>허위 사실이 발견되는 경우 채용이 취소될 수 있습니다.</li></ul>`
     };
     
@@ -1110,6 +1110,32 @@ function applyStyle(property, value) {
     if (selection.rangeCount === 0) return;
     
     const range = selection.getRangeAt(0);
+    
+    // 색상 변경 시도 시, fixed-color 클래스가 있는지 확인
+    if (property === 'color') {
+        const container = range.commonAncestorContainer;
+        let element = container.nodeType === 3 ? container.parentElement : container;
+        
+        // 선택 영역의 부모 요소들을 확인
+        while (element) {
+            if (element.classList && element.classList.contains('fixed-color')) {
+                alert('이 텍스트의 색상은 고정되어 있어 변경할 수 없습니다.');
+                return;
+            }
+            if (element.classList && element.classList.contains('editable-content')) {
+                break;
+            }
+            element = element.parentElement;
+        }
+        
+        // 선택 영역 내부의 fixed-color 요소 확인
+        const tempDiv = document.createElement('div');
+        tempDiv.appendChild(range.cloneContents());
+        if (tempDiv.querySelector('.fixed-color')) {
+            alert('선택 영역에 색상이 고정된 텍스트가 포함되어 있습니다.');
+            return;
+        }
+    }
     
     // 선택된 텍스트를 span으로 감싸기
     const span = document.createElement('span');
