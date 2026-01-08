@@ -435,8 +435,8 @@ async function downloadImage() {
         
         element.style.transform = originalTransform; // 원래 줌 레벨로 복원
         
-        // 가로 900px로 리사이즈
-        const targetWidth = 900;
+        // 가로 950px로 리사이즈
+        const targetWidth = 950;
         const originalWidth = canvas.width;
         const originalHeight = canvas.height;
         const targetHeight = Math.round((originalHeight * targetWidth) / originalWidth);
@@ -467,7 +467,7 @@ async function downloadImage() {
             
             btn.textContent = originalText;
             btn.disabled = false;
-            alert('✅ 이미지가 다운로드되었습니다! (900px 가로)');
+            alert('✅ 이미지가 다운로드되었습니다! (950px 가로)');
         });
         
     } catch (error) {
@@ -522,8 +522,8 @@ async function copyImageLink() {
         
         element.style.transform = originalTransform;
         
-        // 가로 900px로 리사이즈
-        const targetWidth = 900;
+        // 가로 950px로 리사이즈
+        const targetWidth = 950;
         const originalWidth = canvas.width;
         const originalHeight = canvas.height;
         const targetHeight = Math.round((originalHeight * targetWidth) / originalWidth);
