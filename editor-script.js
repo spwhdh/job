@@ -671,7 +671,8 @@ document.addEventListener('keydown', function(e) {
     // Ctrl + Z: 실행 취소
     if (e.ctrlKey && e.key === 'z' && !e.shiftKey) {
         const activeElement = document.activeElement;
-        if (activeElement && activeElement.closest('.editable-content')) {
+        // textarea 또는 editable-content에서 작동
+        if (activeElement && (activeElement.tagName === 'TEXTAREA' || activeElement.closest('.editable-content'))) {
             e.preventDefault();
             undo();
         }
@@ -680,7 +681,8 @@ document.addEventListener('keydown', function(e) {
     // Ctrl + Y 또는 Ctrl + Shift + Z: 다시 실행
     if ((e.ctrlKey && e.key === 'y') || (e.ctrlKey && e.shiftKey && e.key === 'z')) {
         const activeElement = document.activeElement;
-        if (activeElement && activeElement.closest('.editable-content')) {
+        // textarea 또는 editable-content에서 작동
+        if (activeElement && (activeElement.tagName === 'TEXTAREA' || activeElement.closest('.editable-content'))) {
             e.preventDefault();
             redo();
         }
@@ -1275,6 +1277,7 @@ function saveHistoryState() {
 function undo() {
     if (undoHistory.length === 0) {
         console.log('실행 취소할 내용이 없습니다.');
+        showToast('⚠️ 실행 취소할 내용이 없습니다');
         return;
     }
     
@@ -1321,12 +1324,14 @@ function undo() {
     }, 100);
     
     console.log('✅ 실행 취소');
+    showToast('↶ 실행 취소');
 }
 
 // 다시 실행
 function redo() {
     if (redoHistory.length === 0) {
         console.log('다시 실행할 내용이 없습니다.');
+        showToast('⚠️ 다시 실행할 내용이 없습니다');
         return;
     }
     
@@ -1372,6 +1377,7 @@ function redo() {
     }, 100);
     
     console.log('✅ 다시 실행');
+    showToast('↷ 다시 실행');
 }
 
 // 모든 필드를 입력 폼으로 동기화
@@ -2160,4 +2166,31 @@ async function generateAllWithAI() {
     alert(`✅ AI 생성 완료!\n\n${successCount}/${fields.length}개 섹션이 생성되었습니다.`);
 }
 
+// 토스트 알림 표시
+function showToast(message, duration = 2000) {
+    // 기존 토스트 제거
+    const existingToast = document.querySelector('.toast-notification');
+    if (existingToast) {
+        existingToast.remove();
+    }
+    
+    // 새 토스트 생성
+    const toast = document.createElement('div');
+    toast.className = 'toast-notification';
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    
+    // 애니메이션
+    setTimeout(() => {
+        toast.classList.add('show');
+    }, 10);
+    
+    // 자동 제거
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => {
+            toast.remove();
+        }, 300);
+    }, duration);
+}
 

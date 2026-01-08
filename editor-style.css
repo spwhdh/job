@@ -1525,3 +1525,25 @@ body {
     transform: none;
 }
 
+/* ============ 토스트 알림 ============ */
+.toast-notification {
+    position: fixed;
+    bottom: -100px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(31, 35, 41, 0.95);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    z-index: 10001;
+    transition: bottom 0.3s ease;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    white-space: nowrap;
+}
+
+.toast-notification.show {
+    bottom: 30px;
+}
+
