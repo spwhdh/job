@@ -948,15 +948,9 @@ function handleTextSelection(e) {
 
 // 선택 변경 감지
 function handleSelectionChange() {
-    const selection = window.getSelection();
-    if (selection.toString().trim().length === 0 && floatingToolbar.classList.contains('show')) {
-        // 약간의 지연을 주어 버튼 클릭이 먼저 처리되도록 함
-        setTimeout(() => {
-            if (window.getSelection().toString().trim().length === 0) {
-                hideToolbar();
-            }
-        }, 100);
-    }
+    // 툴바는 선택이 해제되어도 자동으로 숨기지 않음
+    // 사용자가 빈 화면(외부)을 클릭할 때만 mousedown 이벤트 핸들러에서 툴바가 숨겨짐
+    // 이렇게 하면 툴바 버튼을 클릭할 때 툴바가 계속 유지됨
 }
 
 // 툴바 표시
