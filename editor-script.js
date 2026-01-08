@@ -42,11 +42,15 @@ document.addEventListener('DOMContentLoaded', function() {
             departmentSelect.value = savedDepartment;
         }
         
-        // 부서 변경 시 저장
+        // 부서 변경 시 저장 및 이미지 업데이트
         departmentSelect.addEventListener('change', function() {
             localStorage.setItem('department', this.value);
+            updateImagesBasedOnDepartment(); // 이미지 업데이트
         });
     }
+    
+    // 페이지 로드 시 초기 이미지 설정
+    updateImagesBasedOnDepartment();
     
     // 부서 입력란 Enter 키 이벤트
     const newDeptInput = document.getElementById('newDepartmentInput');
@@ -1379,6 +1383,29 @@ function selectAllInElement(element) {
     selection.addRange(range);
 }
 
+// ============ 부서별 이미지 변경 기능 ============
+
+// 부서 선택에 따라 이미지 변경
+function updateImagesBasedOnDepartment() {
+    const department = document.getElementById('department').value;
+    const topImage = document.querySelector('.top-image img');
+    const bottomImage = document.querySelector('.bottom-image img');
+    
+    if (!topImage || !bottomImage) return;
+    
+    if (department === '개발사업부') {
+        // 개발사업부 선택 시 2번 이미지 사용
+        topImage.src = 'jop-top2.png';
+        bottomImage.src = 'jop-under2.png';
+        console.log('✅ 개발사업부 이미지로 변경');
+    } else {
+        // 다른 부서 또는 미선택 시 기본 이미지 사용
+        topImage.src = 'jop-top.png';
+        bottomImage.src = 'jop-under.png';
+        console.log('✅ 기본 이미지로 변경');
+    }
+}
+
 // ============ 부서 관리 기능 ============
 
 // 기본 부서 목록
@@ -1873,6 +1900,9 @@ async function loadHistory(historyId) {
     setTimeout(() => {
         saveHistoryState();
     }, 100);
+    
+    // 부서에 맞는 이미지 업데이트
+    updateImagesBasedOnDepartment();
     
     alert('✅ 히스토리를 불러왔습니다!');
     console.log('✅ 히스토리 불러옴:', history);
