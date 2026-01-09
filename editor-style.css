@@ -485,6 +485,8 @@ body {
     border-left: none;
     border-bottom: 2px solid #CCCCCC;
     text-align: left;
+    user-select: none;
+    cursor: default;
 }
 
 /* 하위 섹션 */
@@ -508,7 +510,7 @@ body {
 
 .section-content {
     color: #333333;
-    font-size: 24px;
+    font-size: 18px;
     line-height: 1.8;
     margin-top: 0;
 }
@@ -631,7 +633,7 @@ body {
     display: flex;
     align-items: flex-start;
     margin-bottom: 8px;
-    font-size: 24px;
+    font-size: 18px;
     line-height: 1.6;
 }
 
@@ -674,14 +676,14 @@ body {
 }
 
 .salary-title {
-    font-size: 24px;
+    font-size: 18px;
     font-weight: 600;
     color: #333333;
     margin-bottom: 10px;
 }
 
 .salary-content {
-    font-size: 24px;
+    font-size: 18px;
     color: #333333;
     line-height: 1.6;
     margin: 0;
@@ -726,7 +728,7 @@ body {
     position: relative;
     padding-left: 20px;
     margin-bottom: 10px;
-    font-size: 24px;
+    font-size: 18px;
     line-height: 1.6;
     color: #333333;
 }
