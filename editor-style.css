@@ -554,6 +554,15 @@ body {
     font-size: 8px;
 }
 
+/* 빈 리스트 항목 숨기기 */
+.section-content li:empty {
+    display: none;
+}
+
+.section-content li:empty::before {
+    display: none;
+}
+
 /* 특정 섹션 스타일 - 이미 content-section에서 스타일 적용됨 */
 .recommend-section,
 .duties-section,
