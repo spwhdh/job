@@ -909,16 +909,42 @@ function enableDirectEdit() {
                         }
                     } else {
                         // 내용이 있는 항목에서 엔터
-                        // 커서가 항목의 끝에 있는지 확인 (커서 뒤에 텍스트가 있는지 체크)
-                        const tempRange = range.cloneRange();
-                        tempRange.selectNodeContents(listItem);
-                        tempRange.setStart(range.endContainer, range.endOffset);
-                        const textAfterCursor = tempRange.toString().trim();
-                        const isAtEnd = textAfterCursor === '';
+                        // 커서가 항목의 끝에 있는지 확인
+                        let isAtEnd = false;
+                        
+                        try {
+                            // 방법 1: 커서 뒤의 텍스트 확인
+                            const tempRange = range.cloneRange();
+                            tempRange.selectNodeContents(listItem);
+                            tempRange.setStart(range.endContainer, range.endOffset);
+                            const textAfterCursor = tempRange.toString().trim();
+                            
+                            // 방법 2: 전체 텍스트 길이와 커서까지의 텍스트 길이 비교
+                            const fullText = listItem.textContent.trim();
+                            const rangeUpToCursor = range.cloneRange();
+                            rangeUpToCursor.selectNodeContents(listItem);
+                            rangeUpToCursor.setEnd(range.endContainer, range.endOffset);
+                            const textBeforeCursor = rangeUpToCursor.toString().trim();
+                            
+                            // 두 가지 방법 모두로 확인
+                            isAtEnd = (textAfterCursor === '') || (textBeforeCursor === fullText);
+                            
+                            console.log('=== Enter Key Debug ===');
+                            console.log('Full text:', fullText);
+                            console.log('Text before cursor:', textBeforeCursor);
+                            console.log('Text after cursor:', textAfterCursor);
+                            console.log('Is at end:', isAtEnd);
+                        } catch (err) {
+                            console.error('Error checking cursor position:', err);
+                            // 에러 발생 시 기본 동작 허용
+                            isAtEnd = false;
+                        }
                         
                         if (isAtEnd) {
                             // 끝에 있으면 → 새 리스트 항목 생성
                             e.preventDefault();
+                            console.log('Creating new list item');
+                            
                             const newLi = document.createElement('li');
                             const br = document.createElement('br');
                             newLi.appendChild(br);
@@ -932,6 +958,8 @@ function enableDirectEdit() {
                             newRange.collapse(true);
                             selection.removeAllRanges();
                             selection.addRange(newRange);
+                        } else {
+                            console.log('Not at end, allowing line break');
                         }
                         // 중간이면 기본 동작 (줄바꿈) 허용
                     }
