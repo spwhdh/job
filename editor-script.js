@@ -1163,10 +1163,12 @@ function applyStyle(property, value) {
     
     // 선택된 텍스트를 span으로 감싸기
     const span = document.createElement('span');
+    let targetElement = null;
     
     try {
         range.surroundContents(span);
         span.style[property] = value;
+        targetElement = span;
     } catch (e) {
         // 여러 요소에 걸쳐 선택된 경우
         const fragment = range.extractContents();
@@ -1174,13 +1176,21 @@ function applyStyle(property, value) {
         wrapper.style[property] = value;
         wrapper.appendChild(fragment);
         range.insertNode(wrapper);
+        targetElement = wrapper;
     }
     
     // 빈 리스트 항목 제거
     removeEmptyListItems();
     
-    // Range 다시 저장
-    saveCurrentRange();
+    // 새로 생성된 요소를 선택하고 저장
+    if (targetElement) {
+        const selection = window.getSelection();
+        const newRange = document.createRange();
+        newRange.selectNodeContents(targetElement);
+        selection.removeAllRanges();
+        selection.addRange(newRange);
+        savedRange = newRange.cloneRange();
+    }
     
     // 히스토리 저장
     setTimeout(() => saveHistoryState(), 100);
