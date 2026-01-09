@@ -24,7 +24,11 @@
             <option value="'Nanum Myeongjo', serif">나눔명조</option>
         </select>
         
-        <input type="number" class="toolbar-number-input" id="fontSize" min="10" max="40" value="16" title="크기">
+        <div class="toolbar-separator"></div>
+        
+        <button class="toolbar-arrow-btn" id="fontSizeDown" title="크기 줄이기">−</button>
+        <input type="number" class="toolbar-number-input" id="fontSize" min="10" max="72" value="16" title="크기">
+        <button class="toolbar-arrow-btn" id="fontSizeUp" title="크기 키우기">+</button>
         
         <div class="toolbar-separator"></div>
         
@@ -33,17 +37,7 @@
         
         <div class="toolbar-separator"></div>
         
-        <button class="toolbar-color-picker" id="textColorBtn" title="텍스트 색상">
-            <input type="color" id="textColor" value="#000000">
-        </button>
-        
-        <button class="color-none-btn" id="textColorNone" title="색상 제거">✕</button>
-        
-        <button class="toolbar-color-picker" id="bgColorBtn" title="배경색">
-            <input type="color" id="bgColor" value="#ffff00">
-        </button>
-        
-        <button class="color-none-btn" id="bgColorNone" title="배경색 제거">✕</button>
+        <input type="color" class="toolbar-color-input" id="textColor" value="#000000" title="텍스트 색상">
     </div>
 
     <div class="editor-container">

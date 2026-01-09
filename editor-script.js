@@ -861,142 +861,93 @@ function syncToInput(inputId, previewId) {
 // 플로팅 툴바 초기화
 function initFloatingToolbar() {
     floatingToolbar = document.getElementById('floatingToolbar');
-    const previewPanel = document.querySelector('.preview-scroll');
     
-    if (!floatingToolbar || !previewPanel) return;
+    if (!floatingToolbar) return;
     
     // 텍스트 선택 이벤트
     document.addEventListener('mouseup', handleTextSelection);
-    document.addEventListener('selectionchange', handleSelectionChange);
     
-    // 툴바 버튼 이벤트
-    document.getElementById('boldBtn').addEventListener('click', () => applyFormat('bold'));
-    document.getElementById('underlineBtn').addEventListener('click', () => applyFormat('underline'));
-    
-    // 폰트 변경
-    const fontFamilySelect = document.getElementById('fontFamily');
-    fontFamilySelect.addEventListener('mousedown', (e) => {
-        // 드롭다운 열 때 Range 저장
-        const selection = window.getSelection();
-        if (selection.rangeCount > 0) {
-            savedRange = selection.getRangeAt(0).cloneRange();
-            currentSelection = selection;
-        }
+    // 굵게 버튼
+    document.getElementById('boldBtn').addEventListener('click', () => {
+        applyFormat('bold');
     });
+    
+    // 밑줄 버튼
+    document.getElementById('underlineBtn').addEventListener('click', () => {
+        applyFormat('underline');
+    });
+    
+    // 폰트 선택
+    const fontFamilySelect = document.getElementById('fontFamily');
+    fontFamilySelect.addEventListener('mousedown', saveCurrentRange);
     fontFamilySelect.addEventListener('change', (e) => {
         applyStyle('fontFamily', e.target.value);
-        // 사용 후 Range 초기화
-        setTimeout(() => {
-            savedRange = null;
-        }, 200);
     });
     
-    // 폰트 크기 변경
+    // 폰트 크기 입력
     const fontSizeInput = document.getElementById('fontSize');
-    fontSizeInput.addEventListener('mousedown', (e) => {
-        // 텍스트 선택이 해제되지 않도록 Range 저장
-        const selection = window.getSelection();
-        if (selection.rangeCount > 0) {
-            savedRange = selection.getRangeAt(0).cloneRange();
-            currentSelection = selection;
-        }
-    });
-    fontSizeInput.addEventListener('focus', (e) => {
-        // 포커스 시에도 Range 저장
-        const selection = window.getSelection();
-        if (selection.rangeCount > 0 && !savedRange) {
-            savedRange = selection.getRangeAt(0).cloneRange();
-            currentSelection = selection;
-        }
-    });
+    fontSizeInput.addEventListener('mousedown', saveCurrentRange);
+    fontSizeInput.addEventListener('focus', saveCurrentRange);
     fontSizeInput.addEventListener('change', (e) => {
-        applyStyle('fontSize', e.target.value + 'px');
-        // 사용 후 Range 초기화
-        setTimeout(() => {
-            savedRange = null;
-        }, 200);
+        const size = parseInt(e.target.value);
+        if (size >= 10 && size <= 72) {
+            applyStyle('fontSize', size + 'px');
+        }
+    });
+    
+    // 폰트 크기 증가 버튼
+    document.getElementById('fontSizeUp').addEventListener('click', () => {
+        const input = document.getElementById('fontSize');
+        let currentSize = parseInt(input.value) || 16;
+        if (currentSize < 72) {
+            currentSize += 1;
+            input.value = currentSize;
+            applyStyle('fontSize', currentSize + 'px');
+        }
+    });
+    
+    // 폰트 크기 감소 버튼
+    document.getElementById('fontSizeDown').addEventListener('click', () => {
+        const input = document.getElementById('fontSize');
+        let currentSize = parseInt(input.value) || 16;
+        if (currentSize > 10) {
+            currentSize -= 1;
+            input.value = currentSize;
+            applyStyle('fontSize', currentSize + 'px');
+        }
     });
     
     // 텍스트 색상
     const textColorInput = document.getElementById('textColor');
-    textColorInput.addEventListener('mousedown', (e) => {
-        // 색상 선택기 열 때 Range 저장
-        const selection = window.getSelection();
-        if (selection.rangeCount > 0) {
-            savedRange = selection.getRangeAt(0).cloneRange();
-            currentSelection = selection;
-        }
-    });
-    textColorInput.addEventListener('change', (e) => {
+    textColorInput.addEventListener('mousedown', saveCurrentRange);
+    textColorInput.addEventListener('input', (e) => {
         applyStyle('color', e.target.value);
-        // 사용 후 Range 초기화
-        setTimeout(() => {
-            savedRange = null;
-        }, 200);
     });
     
-    // 배경색
-    const bgColorInput = document.getElementById('bgColor');
-    bgColorInput.addEventListener('mousedown', (e) => {
-        // 색상 선택기 열 때 Range 저장
-        const selection = window.getSelection();
-        if (selection.rangeCount > 0) {
-            savedRange = selection.getRangeAt(0).cloneRange();
-            currentSelection = selection;
-        }
-    });
-    bgColorInput.addEventListener('change', (e) => {
-        applyStyle('backgroundColor', e.target.value);
-        // 사용 후 Range 초기화
-        setTimeout(() => {
-            savedRange = null;
-        }, 200);
-    });
-    
-    // 텍스트 색상 제거 버튼
-    document.getElementById('textColorNone').addEventListener('click', () => {
-        removeTextColor();
-    });
-    
-    // 배경색 제거 버튼
-    document.getElementById('bgColorNone').addEventListener('click', () => {
-        removeBackgroundColor();
-    });
-    
-    // 다른 곳 클릭하면 툴바 숨김 (색상 선택기 제외)
+    // 툴바 외부 클릭 시 숨김
     document.addEventListener('mousedown', (e) => {
-        // 툴바 내부를 클릭한 경우 (더 확실한 체크)
+        // 툴바 내부 클릭
         if (e.target.closest('.floating-toolbar')) {
             return;
         }
         
-        // 툴바 내부를 클릭한 경우
-        if (floatingToolbar && floatingToolbar.contains(e.target)) {
-            return;
-        }
-        
-        // 편집 가능 영역을 클릭한 경우
+        // 편집 가능 영역 클릭
         if (e.target.closest('.editable-content')) {
-            return;
-        }
-        
-        // 색상 선택기 팝업 내부를 클릭한 경우 (브라우저 네이티브 color picker)
-        // color input 요소의 경우 클릭해도 툴바 유지
-        if (e.target.type === 'color' || e.target.closest('input[type="color"]')) {
-            return;
-        }
-        
-        // 폰트 사이즈, 폰트 패밀리 등 툴바 컨트롤 클릭 시
-        if (e.target.type === 'number' || 
-            e.target.tagName === 'SELECT' ||
-            e.target.id === 'fontSize' || 
-            e.target.id === 'fontFamily') {
             return;
         }
         
         // 그 외의 경우 툴바 숨김
         hideToolbar();
     });
+}
+
+// 현재 선택 영역 저장
+function saveCurrentRange() {
+    const selection = window.getSelection();
+    if (selection.rangeCount > 0) {
+        savedRange = selection.getRangeAt(0).cloneRange();
+        currentSelection = selection;
+    }
 }
 
 // 텍스트 선택 감지
@@ -1014,6 +965,7 @@ function handleTextSelection(e) {
         while (parent) {
             if (parent.classList && parent.classList.contains('editable-content')) {
                 currentSelection = selection;
+                savedRange = range.cloneRange();
                 showToolbar(e);
                 return;
             }
@@ -1023,13 +975,6 @@ function handleTextSelection(e) {
     
     // 선택된 텍스트가 없으면 툴바 숨김
     hideToolbar();
-}
-
-// 선택 변경 감지
-function handleSelectionChange() {
-    // 툴바는 선택이 해제되어도 자동으로 숨기지 않음
-    // 사용자가 빈 화면(외부)을 클릭할 때만 mousedown 이벤트 핸들러에서 툴바가 숨겨짐
-    // 이렇게 하면 툴바 버튼을 클릭할 때 툴바가 계속 유지됨
 }
 
 // 툴바 표시
@@ -1043,8 +988,8 @@ function showToolbar(e) {
     const rect = range.getBoundingClientRect();
     
     // 툴바 위치 계산
-    const toolbarWidth = 400; // 예상 툴바 너비
-    const toolbarHeight = 50; // 예상 툴바 높이
+    const toolbarWidth = 350;
+    const toolbarHeight = 50;
     
     let left = rect.left + (rect.width / 2) - (toolbarWidth / 2);
     let top = rect.top - toolbarHeight - 10;
@@ -1072,6 +1017,7 @@ function showToolbar(e) {
 function hideToolbar() {
     if (floatingToolbar) {
         floatingToolbar.classList.remove('show');
+        savedRange = null;
     }
 }
 
@@ -1104,15 +1050,6 @@ function updateToolbarState() {
         document.getElementById('textColor').value = textColor;
     }
     
-    // 배경색 확인
-    const bgColor = computedStyle.backgroundColor;
-    if (bgColor && bgColor !== 'rgba(0, 0, 0, 0)' && bgColor !== 'transparent') {
-        const bgColorHex = rgbToHex(bgColor);
-        if (bgColorHex) {
-            document.getElementById('bgColor').value = bgColorHex;
-        }
-    }
-    
     // 폰트 크기 확인
     const fontSize = parseInt(computedStyle.fontSize);
     if (fontSize) {
@@ -1138,12 +1075,10 @@ function updateToolbarState() {
 
 // RGB를 HEX로 변환하는 함수
 function rgbToHex(rgb) {
-    // 이미 hex 형식이면 그대로 반환
     if (rgb.startsWith('#')) {
         return rgb;
     }
     
-    // rgb(r, g, b) 형식 파싱
     const result = rgb.match(/\d+/g);
     if (!result || result.length < 3) {
         return null;
@@ -1161,46 +1096,44 @@ function rgbToHex(rgb) {
 
 // 포맷 적용 (굵게, 밑줄)
 function applyFormat(command) {
-    const selection = window.getSelection();
-    if (selection.rangeCount === 0) return;
+    // 저장된 Range 복원
+    if (savedRange) {
+        const selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(savedRange);
+    }
     
     document.execCommand(command, false, null);
+    
+    // Range 다시 저장
+    saveCurrentRange();
     
     // 툴바 상태 업데이트
     updateToolbarState();
     
-    // 선택 유지
-    setTimeout(() => {
-        if (currentSelection) {
-            currentSelection = window.getSelection();
-        }
-    }, 10);
+    // 히스토리 저장
+    setTimeout(() => saveHistoryState(), 100);
 }
 
 // 스타일 적용 (색상, 크기, 폰트)
 function applyStyle(property, value) {
-    let selection = window.getSelection();
-    let range;
-    
-    // 현재 선택이 없으면 저장된 Range 사용
-    if (selection.rangeCount === 0 && savedRange) {
+    // 저장된 Range 복원
+    if (savedRange) {
+        const selection = window.getSelection();
         selection.removeAllRanges();
         selection.addRange(savedRange);
-        range = savedRange;
-    } else if (selection.rangeCount > 0) {
-        range = selection.getRangeAt(0);
     } else {
-        console.log('선택된 텍스트가 없습니다.');
         showToast('⚠️ 텍스트를 먼저 선택해주세요');
         return;
     }
     
-    // 색상 변경 시도 시, fixed-color 클래스가 있는지 확인
+    const range = savedRange;
+    
+    // 색상 변경 시 fixed-color 클래스 확인
     if (property === 'color') {
         const container = range.commonAncestorContainer;
         let element = container.nodeType === 3 ? container.parentElement : container;
         
-        // 선택 영역의 부모 요소들을 확인
         while (element) {
             if (element.classList && element.classList.contains('fixed-color')) {
                 alert('이 텍스트의 색상은 고정되어 있어 변경할 수 없습니다.');
@@ -1212,7 +1145,6 @@ function applyStyle(property, value) {
             element = element.parentElement;
         }
         
-        // 선택 영역 내부의 fixed-color 요소 확인
         const tempDiv = document.createElement('div');
         tempDiv.appendChild(range.cloneContents());
         if (tempDiv.querySelector('.fixed-color')) {
@@ -1236,86 +1168,8 @@ function applyStyle(property, value) {
         range.insertNode(wrapper);
     }
     
-    // 히스토리 저장
-    setTimeout(() => saveHistoryState(), 100);
-    
-    // 성공 메시지
-    showToast('✓ 스타일 적용됨');
-}
-
-// 텍스트 색상 제거
-function removeTextColor() {
-    const selection = window.getSelection();
-    if (selection.rangeCount === 0) return;
-    
-    const range = selection.getRangeAt(0);
-    
-    // 선택된 영역의 모든 요소에서 color 스타일 제거
-    const container = range.commonAncestorContainer;
-    let element = container.nodeType === 3 ? container.parentElement : container;
-    
-    // 현재 요소와 자식 요소들의 color 스타일 제거
-    if (element.style) {
-        element.style.color = '';
-        
-        // 스타일이 완전히 비었으면 style 속성 제거
-        if (element.style.cssText === '') {
-            element.removeAttribute('style');
-        }
-    }
-    
-    // 선택 영역 내의 모든 span 요소 처리
-    const spans = element.querySelectorAll('span');
-    spans.forEach(span => {
-        span.style.color = '';
-        if (span.style.cssText === '') {
-            // span에 다른 스타일이 없으면 내용만 유지하고 span 제거
-            const parent = span.parentNode;
-            while (span.firstChild) {
-                parent.insertBefore(span.firstChild, span);
-            }
-            parent.removeChild(span);
-        }
-    });
-    
-    // 히스토리 저장
-    setTimeout(() => saveHistoryState(), 100);
-}
-
-// 배경색 제거
-function removeBackgroundColor() {
-    const selection = window.getSelection();
-    if (selection.rangeCount === 0) return;
-    
-    const range = selection.getRangeAt(0);
-    
-    // 선택된 영역의 모든 요소에서 backgroundColor 스타일 제거
-    const container = range.commonAncestorContainer;
-    let element = container.nodeType === 3 ? container.parentElement : container;
-    
-    // 현재 요소와 자식 요소들의 backgroundColor 스타일 제거
-    if (element.style) {
-        element.style.backgroundColor = '';
-        
-        // 스타일이 완전히 비었으면 style 속성 제거
-        if (element.style.cssText === '') {
-            element.removeAttribute('style');
-        }
-    }
-    
-    // 선택 영역 내의 모든 span 요소 처리
-    const spans = element.querySelectorAll('span');
-    spans.forEach(span => {
-        span.style.backgroundColor = '';
-        if (span.style.cssText === '') {
-            // span에 다른 스타일이 없으면 내용만 유지하고 span 제거
-            const parent = span.parentNode;
-            while (span.firstChild) {
-                parent.insertBefore(span.firstChild, span);
-            }
-            parent.removeChild(span);
-        }
-    });
+    // Range 다시 저장
+    saveCurrentRange();
     
     // 히스토리 저장
     setTimeout(() => saveHistoryState(), 100);

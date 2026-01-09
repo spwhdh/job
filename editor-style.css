@@ -741,7 +741,7 @@ body {
     box-shadow: 0 4px 16px rgba(31, 35, 41, 0.15);
     display: none;
     z-index: 1000;
-    gap: 4px;
+    gap: 6px;
     align-items: center;
 }
 
@@ -749,41 +749,8 @@ body {
     display: flex;
 }
 
-.toolbar-button {
-    padding: 6px 10px;
-    border: none;
-    background: white;
-    color: #1F2329;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    border-radius: 4px;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 32px;
-    height: 32px;
-}
-
-.toolbar-button:hover {
-    background: #F5F6F8;
-}
-
-.toolbar-button.active {
-    background: #3370FF;
-    color: white;
-}
-
-.toolbar-separator {
-    width: 1px;
-    height: 24px;
-    background: #E5E6EB;
-    margin: 0 4px;
-}
-
 .toolbar-select {
-    padding: 4px 8px;
+    padding: 6px 10px;
     border: 1px solid #E5E6EB;
     border-radius: 4px;
     font-size: 13px;
@@ -791,10 +758,12 @@ body {
     color: #1F2329;
     cursor: pointer;
     transition: all 0.2s ease;
+    height: 32px;
 }
 
 .toolbar-select:hover {
     border-color: #3370FF;
+    background: #F5F6F8;
 }
 
 .toolbar-select:focus {
@@ -803,62 +772,121 @@ body {
     box-shadow: 0 0 0 2px rgba(51, 112, 255, 0.1);
 }
 
-.toolbar-color-picker {
-    width: 32px;
-    height: 32px;
-    border: 1px solid #E5E6EB;
-    border-radius: 4px;
-    cursor: pointer;
-    padding: 0;
-    background: none;
-    position: relative;
-    overflow: hidden;
+.toolbar-separator {
+    width: 1px;
+    height: 24px;
+    background: #E5E6EB;
+    margin: 0 2px;
 }
 
-.toolbar-color-picker input[type="color"] {
-    position: absolute;
-    width: 150%;
-    height: 150%;
-    top: -25%;
-    left: -25%;
-    border: none;
-    cursor: pointer;
-}
-
-.color-none-btn {
-    width: 32px;
+.toolbar-arrow-btn {
+    width: 28px;
     height: 32px;
     border: 1px solid #E5E6EB;
-    border-radius: 4px;
-    cursor: pointer;
-    padding: 0;
     background: white;
-    color: #646A73;
-    font-size: 14px;
+    color: #1F2329;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s ease;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.2s ease;
+    padding: 0;
 }
 
-.color-none-btn:hover {
+.toolbar-arrow-btn:hover {
     background: #F5F6F8;
-    border-color: #FF4D4F;
-    color: #FF4D4F;
+    border-color: #3370FF;
+    color: #3370FF;
+}
+
+.toolbar-arrow-btn:active {
+    background: #E5E6EB;
 }
 
 .toolbar-number-input {
     width: 50px;
+    height: 32px;
     padding: 4px 8px;
     border: 1px solid #E5E6EB;
     border-radius: 4px;
     font-size: 13px;
     text-align: center;
+    background: white;
+    color: #1F2329;
+    transition: all 0.2s ease;
+}
+
+.toolbar-number-input:hover {
+    border-color: #C9CDD4;
 }
 
 .toolbar-number-input:focus {
     outline: none;
     border-color: #3370FF;
+    box-shadow: 0 0 0 2px rgba(51, 112, 255, 0.1);
+}
+
+/* 브라우저 기본 화살표 숨기기 */
+.toolbar-number-input::-webkit-inner-spin-button,
+.toolbar-number-input::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.toolbar-number-input {
+    -moz-appearance: textfield;
+}
+
+.toolbar-button {
+    width: 32px;
+    height: 32px;
+    border: 1px solid #E5E6EB;
+    background: white;
+    color: #1F2329;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+
+.toolbar-button:hover {
+    background: #F5F6F8;
+    border-color: #3370FF;
+}
+
+.toolbar-button.active {
+    background: #3370FF;
+    color: white;
+    border-color: #3370FF;
+}
+
+.toolbar-color-input {
+    width: 40px;
+    height: 32px;
+    border: 1px solid #E5E6EB;
+    border-radius: 4px;
+    cursor: pointer;
+    padding: 2px;
+    background: white;
+    transition: all 0.2s ease;
+}
+
+.toolbar-color-input:hover {
+    border-color: #3370FF;
+}
+
+.toolbar-color-input:focus {
+    outline: none;
+    border-color: #3370FF;
+    box-shadow: 0 0 0 2px rgba(51, 112, 255, 0.1);
 }
 
 /* 반응형 */
