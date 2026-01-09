@@ -909,20 +909,12 @@ function enableDirectEdit() {
                         }
                     } else {
                         // 내용이 있는 항목에서 엔터
-                        // 커서가 항목의 끝에 있는지 확인
-                        const listItemText = listItem.textContent;
-                        const cursorPosition = range.endOffset;
-                        const endContainer = range.endContainer;
-                        
-                        // 커서가 끝에 있는지 판단
-                        let isAtEnd = false;
-                        if (endContainer.nodeType === 3) { // 텍스트 노드
-                            // 텍스트 노드의 끝이고, 뒤에 더 이상 텍스트가 없는지 확인
-                            isAtEnd = cursorPosition === endContainer.length && 
-                                     !endContainer.nextSibling;
-                        } else { // 요소 노드
-                            isAtEnd = cursorPosition === endContainer.childNodes.length;
-                        }
+                        // 커서가 항목의 끝에 있는지 확인 (커서 뒤에 텍스트가 있는지 체크)
+                        const tempRange = range.cloneRange();
+                        tempRange.selectNodeContents(listItem);
+                        tempRange.setStart(range.endContainer, range.endOffset);
+                        const textAfterCursor = tempRange.toString().trim();
+                        const isAtEnd = textAfterCursor === '';
                         
                         if (isAtEnd) {
                             // 끝에 있으면 → 새 리스트 항목 생성
