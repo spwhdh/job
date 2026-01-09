@@ -896,6 +896,7 @@ function initFloatingToolbar() {
     });
     
     // 폰트 크기 증가 버튼
+    document.getElementById('fontSizeUp').addEventListener('mousedown', saveCurrentRange);
     document.getElementById('fontSizeUp').addEventListener('click', () => {
         const input = document.getElementById('fontSize');
         let currentSize = parseInt(input.value) || 16;
@@ -907,6 +908,7 @@ function initFloatingToolbar() {
     });
     
     // 폰트 크기 감소 버튼
+    document.getElementById('fontSizeDown').addEventListener('mousedown', saveCurrentRange);
     document.getElementById('fontSizeDown').addEventListener('click', () => {
         const input = document.getElementById('fontSize');
         let currentSize = parseInt(input.value) || 16;
