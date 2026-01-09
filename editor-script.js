@@ -751,8 +751,8 @@ function enableDirectEdit() {
                 const range = document.createRange();
                 const sel = window.getSelection();
                 const targetNode = this.querySelector('li') || this.querySelector('p');
-                if (targetNode && targetNode.firstChild) {
-                    range.setStart(targetNode.firstChild, 0);
+                if (targetNode) {
+                    range.selectNodeContents(targetNode);
                     range.collapse(true);
                     sel.removeAllRanges();
                     sel.addRange(range);
@@ -852,6 +852,84 @@ function enableDirectEdit() {
             
             // 히스토리 저장
             setTimeout(() => saveHistoryState(), 100);
+        });
+        
+        // 엔터 키 처리 - 리스트 항목 자동 생성
+        preview.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                const selection = window.getSelection();
+                if (!selection.rangeCount) return;
+                
+                const range = selection.getRangeAt(0);
+                let currentElement = range.startContainer;
+                
+                // 텍스트 노드면 부모 요소로
+                if (currentElement.nodeType === 3) {
+                    currentElement = currentElement.parentElement;
+                }
+                
+                // 리스트 항목(<li>) 안에 있는지 확인
+                let listItem = currentElement.closest('li');
+                
+                if (listItem) {
+                    e.preventDefault(); // 기본 동작 방지
+                    
+                    // 현재 리스트 항목이 비어있는지 확인
+                    const isEmpty = listItem.textContent.trim() === '';
+                    
+                    if (isEmpty) {
+                        // 빈 항목에서 엔터 → 리스트 종료
+                        // 리스트 아래에 <br> 추가하여 일반 텍스트 입력 가능하게
+                        const ul = listItem.closest('ul');
+                        if (ul) {
+                            listItem.remove();
+                            
+                            // 리스트가 완전히 비었으면 제거
+                            if (ul.querySelectorAll('li').length === 0) {
+                                const br = document.createElement('br');
+                                ul.parentNode.insertBefore(br, ul.nextSibling);
+                                ul.remove();
+                                
+                                // 커서를 br 뒤로 이동
+                                const newRange = document.createRange();
+                                newRange.setStartAfter(br);
+                                newRange.collapse(true);
+                                selection.removeAllRanges();
+                                selection.addRange(newRange);
+                            } else {
+                                // 마지막 리스트 항목 뒤에 커서 이동
+                                const lastLi = ul.querySelector('li:last-child');
+                                if (lastLi) {
+                                    const newRange = document.createRange();
+                                    newRange.selectNodeContents(lastLi);
+                                    newRange.collapse(false);
+                                    selection.removeAllRanges();
+                                    selection.addRange(newRange);
+                                }
+                            }
+                        }
+                    } else {
+                        // 내용이 있는 항목에서 엔터 → 새 리스트 항목 생성
+                        const newLi = document.createElement('li');
+                        const br = document.createElement('br');
+                        newLi.appendChild(br);
+                        
+                        // 현재 항목 다음에 새 항목 삽입
+                        listItem.parentNode.insertBefore(newLi, listItem.nextSibling);
+                        
+                        // 커서를 새 항목으로 이동
+                        const newRange = document.createRange();
+                        newRange.setStart(newLi, 0);
+                        newRange.collapse(true);
+                        selection.removeAllRanges();
+                        selection.addRange(newRange);
+                    }
+                    
+                    // 히스토리 저장
+                    setTimeout(() => saveHistoryState(), 100);
+                }
+                // 단락(<p>)이나 다른 요소에서는 기본 동작 유지
+            }
         });
     });
 }
