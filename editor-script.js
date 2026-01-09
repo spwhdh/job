@@ -906,6 +906,12 @@ function enableDirectEdit() {
                                     selection.addRange(newRange);
                                 }
                             }
+                            
+                            // 즉시 왼쪽 textarea에 동기화
+                            syncToInput(field.inputId, field.previewId);
+                            
+                            // 히스토리 저장
+                            setTimeout(() => saveHistoryState(), 100);
                         }
                     } else {
                         // 내용이 있는 항목에서 엔터
@@ -958,14 +964,17 @@ function enableDirectEdit() {
                             newRange.collapse(true);
                             selection.removeAllRanges();
                             selection.addRange(newRange);
+                            
+                            // 즉시 왼쪽 textarea에 동기화
+                            syncToInput(field.inputId, field.previewId);
+                            
+                            // 히스토리 저장
+                            setTimeout(() => saveHistoryState(), 100);
                         } else {
                             console.log('Not at end, allowing line break');
                         }
                         // 중간이면 기본 동작 (줄바꿈) 허용
                     }
-                    
-                    // 히스토리 저장
-                    setTimeout(() => saveHistoryState(), 100);
                 }
                 // 단락(<p>)이나 다른 요소에서는 기본 동작 유지
             }
