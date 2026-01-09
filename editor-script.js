@@ -1929,12 +1929,19 @@ async function loadHistory(historyId) {
             localStorage.setItem(fieldId, history.data[fieldId]);
         }
     });
-    
+
+    // 히스토리의 previewHTML을 localStorage에 먼저 저장
+    if (history.previewHTML) {
+        Object.keys(history.previewHTML).forEach(fieldId => {
+            localStorage.setItem(fieldId + '-html', history.previewHTML[fieldId]);
+        });
+    }
+
     // 미리보기 업데이트 - 항상 입력 필드 기준으로 재생성
     Object.keys(history.data).forEach(fieldId => {
         updatePreview(fieldId);
     });
-    
+
     // 미리보기 스타일 복원 (포맷팅, 색상 등)
     if (history.previewHTML) {
         setTimeout(() => {
