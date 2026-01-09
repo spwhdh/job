@@ -728,6 +728,7 @@ function enableDirectEdit() {
         preview.setAttribute('data-input-id', field.inputId);
         preview.setAttribute('spellcheck', 'false');
         
+        
         // 포커스 시 스타일 추가 및 플레이스홀더 제거
         preview.addEventListener('focus', function() {
             this.classList.add('editable-mode');
@@ -737,6 +738,7 @@ function enableDirectEdit() {
             
             // 플레이스홀더 텍스트가 있으면 지우기
             const placeholder = this.querySelector('.placeholder-text');
+            
             if (placeholder) {
                 this.innerHTML = '';
                 // requirements-note인 경우 단락 형식으로 시작

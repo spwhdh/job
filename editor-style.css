@@ -528,7 +528,7 @@ body {
     border-radius: 8px;
     border: 1px dashed #CCCCCC;
     cursor: pointer;
-    user-select: none;
+    /* user-select: none; - 제거됨: 편집 시작 시 텍스트 선택 허용 */
 }
 
 /* 리스트 스타일 */
@@ -557,14 +557,14 @@ body {
     font-size: 8px;
 }
 
-/* 빈 리스트 항목 숨기기 - 공백이나 br만 있는 경우도 포함 */
-.section-content li:empty,
-.section-content li:has(br:only-child) {
+/* 빈 리스트 항목 숨기기 - 편집 모드가 아닐 때만 */
+.section-content:not(.editable-mode) li:empty,
+.section-content:not(.editable-mode) li:has(br:only-child) {
     display: none;
 }
 
-.section-content li:empty::before,
-.section-content li:has(br:only-child)::before {
+.section-content:not(.editable-mode) li:empty::before,
+.section-content:not(.editable-mode) li:has(br:only-child)::before {
     display: none;
 }
 
