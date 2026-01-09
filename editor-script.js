@@ -909,20 +909,40 @@ function enableDirectEdit() {
                             }
                         }
                     } else {
-                        // 내용이 있는 항목에서 엔터 → 새 리스트 항목 생성
-                        const newLi = document.createElement('li');
-                        const br = document.createElement('br');
-                        newLi.appendChild(br);
+                        // 내용이 있는 항목에서 엔터
+                        // 커서가 항목의 끝에 있는지 확인
+                        const listItemText = listItem.textContent;
+                        const cursorPosition = range.endOffset;
+                        const endContainer = range.endContainer;
                         
-                        // 현재 항목 다음에 새 항목 삽입
-                        listItem.parentNode.insertBefore(newLi, listItem.nextSibling);
+                        // 커서가 끝에 있는지 판단
+                        let isAtEnd = false;
+                        if (endContainer.nodeType === 3) { // 텍스트 노드
+                            // 텍스트 노드의 끝이고, 뒤에 더 이상 텍스트가 없는지 확인
+                            isAtEnd = cursorPosition === endContainer.length && 
+                                     !endContainer.nextSibling;
+                        } else { // 요소 노드
+                            isAtEnd = cursorPosition === endContainer.childNodes.length;
+                        }
                         
-                        // 커서를 새 항목으로 이동
-                        const newRange = document.createRange();
-                        newRange.setStart(newLi, 0);
-                        newRange.collapse(true);
-                        selection.removeAllRanges();
-                        selection.addRange(newRange);
+                        if (isAtEnd) {
+                            // 끝에 있으면 → 새 리스트 항목 생성
+                            e.preventDefault();
+                            const newLi = document.createElement('li');
+                            const br = document.createElement('br');
+                            newLi.appendChild(br);
+                            
+                            // 현재 항목 다음에 새 항목 삽입
+                            listItem.parentNode.insertBefore(newLi, listItem.nextSibling);
+                            
+                            // 커서를 새 항목으로 이동
+                            const newRange = document.createRange();
+                            newRange.setStart(newLi, 0);
+                            newRange.collapse(true);
+                            selection.removeAllRanges();
+                            selection.addRange(newRange);
+                        }
+                        // 중간이면 기본 동작 (줄바꿈) 허용
                     }
                     
                     // 히스토리 저장
