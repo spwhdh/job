@@ -872,12 +872,11 @@ function enableDirectEdit() {
                 let listItem = currentElement.closest('li');
                 
                 if (listItem) {
-                    e.preventDefault(); // 기본 동작 방지
-                    
                     // 현재 리스트 항목이 비어있는지 확인
                     const isEmpty = listItem.textContent.trim() === '';
                     
                     if (isEmpty) {
+                        e.preventDefault(); // 기본 동작 방지
                         // 빈 항목에서 엔터 → 리스트 종료
                         // 리스트 아래에 <br> 추가하여 일반 텍스트 입력 가능하게
                         const ul = listItem.closest('ul');
