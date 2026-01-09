@@ -37,7 +37,21 @@
         
         <div class="toolbar-separator"></div>
         
-        <input type="color" class="toolbar-color-input" id="textColor" value="#000000" title="텍스트 색상">
+        <button class="toolbar-preset-color" 
+                data-color="#333333" 
+                style="background-color: #333333;" 
+                title="주 색상 1 (#333333)"></button>
+        
+        <button class="toolbar-preset-color" 
+                data-color="#0062E0" 
+                style="background-color: #0062E0;" 
+                title="주 색상 2 (#0062E0)"></button>
+        
+        <button class="toolbar-color-picker-btn" id="colorPickerBtn" title="다른 색상 선택">
+            ⋯
+        </button>
+        
+        <input type="color" class="toolbar-color-input-hidden" id="textColor" value="#000000">
     </div>
 
     <div class="editor-container">

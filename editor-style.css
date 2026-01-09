@@ -905,6 +905,61 @@ body {
     box-shadow: 0 0 0 2px rgba(51, 112, 255, 0.1);
 }
 
+/* 숨겨진 color input */
+.toolbar-color-input-hidden {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+    width: 0;
+    height: 0;
+}
+
+/* 주 색상 프리셋 버튼 */
+.toolbar-preset-color {
+    width: 32px;
+    height: 32px;
+    border: 2px solid #E5E6EB;
+    border-radius: 4px;
+    cursor: pointer;
+    padding: 0;
+    transition: all 0.2s ease;
+    box-shadow: inset 0 0 0 2px white;
+}
+
+.toolbar-preset-color:hover {
+    border-color: #3370FF;
+    transform: translateY(-2px);
+    box-shadow: inset 0 0 0 2px white, 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.toolbar-preset-color:active {
+    transform: translateY(0);
+}
+
+/* "다른 색상 선택" 버튼 */
+.toolbar-color-picker-btn {
+    width: 32px;
+    height: 32px;
+    border: 1px solid #E5E6EB;
+    background: white;
+    color: #646A73;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.toolbar-color-picker-btn:hover {
+    background: #F5F6F8;
+    border-color: #3370FF;
+    color: #3370FF;
+}
+
 /* 반응형 */
 @media (max-width: 1200px) {
     .input-panel {

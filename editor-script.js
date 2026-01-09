@@ -931,12 +931,39 @@ function initFloatingToolbar() {
         }
     });
     
-    // 텍스트 색상
-    const textColorInput = document.getElementById('textColor');
-    textColorInput.addEventListener('mousedown', saveCurrentRange);
-    textColorInput.addEventListener('input', (e) => {
-        applyStyle('color', e.target.value);
+    // 주 색상 프리셋 버튼들
+    document.querySelectorAll('.toolbar-preset-color').forEach(btn => {
+        btn.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            saveCurrentRange();
+        });
+        
+        btn.addEventListener('click', (e) => {
+            const color = e.target.getAttribute('data-color');
+            applyStyle('color', color);
+        });
     });
+    
+    // "다른 색상 선택" 버튼
+    const colorPickerBtn = document.getElementById('colorPickerBtn');
+    const textColorInput = document.getElementById('textColor');
+    
+    if (colorPickerBtn && textColorInput) {
+        colorPickerBtn.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            saveCurrentRange();
+        });
+        
+        colorPickerBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            textColorInput.click(); // 숨겨진 color input 열기
+        });
+        
+        // color input 값 변경 시 색상 적용
+        textColorInput.addEventListener('input', (e) => {
+            applyStyle('color', e.target.value);
+        });
+    }
     
     // 툴바 외부 클릭 시 숨김
     document.addEventListener('mousedown', (e) => {
