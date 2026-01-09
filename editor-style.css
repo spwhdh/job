@@ -475,7 +475,8 @@ body {
 }
 
 .section-title {
-    font-size: 19px;
+    font-family: 'Pretendard', sans-serif;
+    font-size: 24px;
     font-weight: 700;
     color: #333333;
     margin-bottom: 30px;
@@ -507,7 +508,7 @@ body {
 
 .section-content {
     color: #333333;
-    font-size: 18px;
+    font-size: 24px;
     line-height: 1.8;
     margin-top: 0;
 }
@@ -630,7 +631,7 @@ body {
     display: flex;
     align-items: flex-start;
     margin-bottom: 8px;
-    font-size: 18px;
+    font-size: 24px;
     line-height: 1.6;
 }
 
@@ -673,14 +674,14 @@ body {
 }
 
 .salary-title {
-    font-size: 18px;
+    font-size: 24px;
     font-weight: 600;
     color: #333333;
     margin-bottom: 10px;
 }
 
 .salary-content {
-    font-size: 18px;
+    font-size: 24px;
     color: #333333;
     line-height: 1.6;
     margin: 0;
@@ -725,7 +726,7 @@ body {
     position: relative;
     padding-left: 20px;
     margin-bottom: 10px;
-    font-size: 18px;
+    font-size: 24px;
     line-height: 1.6;
     color: #333333;
 }

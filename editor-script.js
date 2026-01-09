@@ -968,8 +968,26 @@ function handleTextSelection(e) {
         const range = selection.getRangeAt(0);
         const container = range.commonAncestorContainer;
         
-        // 부모 요소 중 editable-content가 있는지 확인
+        // 부모 요소 중 section-title이 있는지 먼저 확인
         let parent = container.nodeType === 3 ? container.parentElement : container;
+        let isSectionTitle = false;
+        
+        let checkParent = parent;
+        while (checkParent) {
+            if (checkParent.classList && checkParent.classList.contains('section-title')) {
+                isSectionTitle = true;
+                break;
+            }
+            checkParent = checkParent.parentElement;
+        }
+        
+        // 섹션 제목이면 툴바를 표시하지 않음
+        if (isSectionTitle) {
+            hideToolbar();
+            return;
+        }
+        
+        // 부모 요소 중 editable-content가 있는지 확인
         while (parent) {
             if (parent.classList && parent.classList.contains('editable-content')) {
                 currentSelection = selection;
