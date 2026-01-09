@@ -746,6 +746,17 @@ function enableDirectEdit() {
                     // 리스트 형식으로 시작
                     this.innerHTML = '<ul><li><br></li></ul>';
                 }
+                
+                // 커서를 새로 생성된 요소 안에 위치시키기
+                const range = document.createRange();
+                const sel = window.getSelection();
+                const targetNode = this.querySelector('li') || this.querySelector('p');
+                if (targetNode && targetNode.firstChild) {
+                    range.setStart(targetNode.firstChild, 0);
+                    range.collapse(true);
+                    sel.removeAllRanges();
+                    sel.addRange(range);
+                }
             } else {
                 // 플레이스홀더가 없지만 완전히 빈 상태일 때도 처리
                 const content = this.textContent.trim();
@@ -754,6 +765,17 @@ function enableDirectEdit() {
                         this.innerHTML = '<p><br></p>';
                     } else {
                         this.innerHTML = '<ul><li><br></li></ul>';
+                    }
+                    
+                    // 커서를 새로 생성된 요소 안에 위치시키기
+                    const range = document.createRange();
+                    const sel = window.getSelection();
+                    const targetNode = this.querySelector('li') || this.querySelector('p');
+                    if (targetNode && targetNode.firstChild) {
+                        range.setStart(targetNode.firstChild, 0);
+                        range.collapse(true);
+                        sel.removeAllRanges();
+                        sel.addRange(range);
                     }
                 }
             }
