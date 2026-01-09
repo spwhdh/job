@@ -968,21 +968,23 @@ function handleTextSelection(e) {
         const range = selection.getRangeAt(0);
         const container = range.commonAncestorContainer;
         
-        // 부모 요소 중 section-title이 있는지 먼저 확인
+        // 부모 요소 중 section-title 또는 requirements-note-box가 있는지 먼저 확인
         let parent = container.nodeType === 3 ? container.parentElement : container;
-        let isSectionTitle = false;
+        let isNonEditable = false;
         
         let checkParent = parent;
         while (checkParent) {
-            if (checkParent.classList && checkParent.classList.contains('section-title')) {
-                isSectionTitle = true;
+            if (checkParent.classList && 
+                (checkParent.classList.contains('section-title') || 
+                 checkParent.classList.contains('requirements-note-box'))) {
+                isNonEditable = true;
                 break;
             }
             checkParent = checkParent.parentElement;
         }
         
-        // 섹션 제목이면 툴바를 표시하지 않음
-        if (isSectionTitle) {
+        // 섹션 제목 또는 자격요건 박스이면 툴바를 표시하지 않음
+        if (isNonEditable) {
             hideToolbar();
             return;
         }
