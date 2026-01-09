@@ -580,7 +580,7 @@ body {
 /* 자격 요건 추가 설명 박스 */
 .requirements-note-box {
     margin-bottom: 24px;
-    padding: 20px 25px;
+    padding: 20px 15px;
     background: #F8F8F8;
     border-radius: 8px;
     line-height: 1.4;
