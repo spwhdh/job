@@ -939,6 +939,8 @@ function initFloatingToolbar() {
         });
         
         btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
             const color = e.target.getAttribute('data-color');
             applyStyle('color', color);
         });
