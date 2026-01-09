@@ -1168,11 +1168,32 @@ function applyStyle(property, value) {
         range.insertNode(wrapper);
     }
     
+    // 빈 리스트 항목 제거
+    removeEmptyListItems();
+    
     // Range 다시 저장
     saveCurrentRange();
     
     // 히스토리 저장
     setTimeout(() => saveHistoryState(), 100);
+}
+
+// 빈 리스트 항목 제거 함수
+function removeEmptyListItems() {
+    // 모든 편집 가능한 영역의 리스트 항목 검사
+    const editableAreas = document.querySelectorAll('.editable-content');
+    editableAreas.forEach(area => {
+        const listItems = area.querySelectorAll('li');
+        listItems.forEach(li => {
+            const text = li.textContent.trim();
+            const hasOnlyBr = li.childNodes.length === 1 && li.querySelector('br');
+            const isEmpty = text === '' || hasOnlyBr;
+            
+            if (isEmpty) {
+                li.remove();
+            }
+        });
+    });
 }
 
 // ============ 실행 취소/다시 실행 기능 ============
