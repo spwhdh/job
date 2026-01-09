@@ -755,9 +755,12 @@ function enableDirectEdit() {
             syncToInput(field.inputId, field.previewId);
         });
         
-        // 입력 시 히스토리 저장 (디바운스 적용)
+        // 입력 시 왼쪽 입력란 실시간 동기화 및 히스토리 저장 (디바운스 적용)
         let inputTimeout;
         preview.addEventListener('input', function() {
+            // 왼쪽 textarea로 실시간 동기화
+            syncToInput(field.inputId, field.previewId);
+            
             clearTimeout(inputTimeout);
             inputTimeout = setTimeout(() => {
                 saveHistoryState();
