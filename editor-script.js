@@ -889,7 +889,10 @@ function initFloatingToolbar() {
     
     // 폰트 크기 입력
     const fontSizeInput = document.getElementById('fontSize');
-    fontSizeInput.addEventListener('mousedown', saveCurrentRange);
+    fontSizeInput.addEventListener('mousedown', (e) => {
+        e.preventDefault(); // 선택 영역 해제 방지
+        saveCurrentRange();
+    });
     fontSizeInput.addEventListener('focus', saveCurrentRange);
     fontSizeInput.addEventListener('change', (e) => {
         const size = parseInt(e.target.value);
