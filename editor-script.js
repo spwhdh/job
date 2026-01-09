@@ -1,5 +1,5 @@
 // 전역 변수
-let zoomLevel = 1;
+let zoomLevel = 0.8; // 기본 80%로 시작
 let currentSelection = null;
 let savedRange = null; // 텍스트 선택 영역 저장
 let floatingToolbar = null;
@@ -124,6 +124,9 @@ document.addEventListener('DOMContentLoaded', function() {
     setTimeout(scrollPreviewToTop, 100);
     setTimeout(scrollPreviewToTop, 300);
     setTimeout(scrollPreviewToTop, 500);
+    
+    // 초기 줌 레벨 적용 (80%)
+    applyZoom();
 });
 
 // 미리보기 패널을 공고 제목 섹션으로 스크롤하는 함수
