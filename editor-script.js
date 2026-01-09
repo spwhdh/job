@@ -746,6 +746,16 @@ function enableDirectEdit() {
                     // 리스트 형식으로 시작
                     this.innerHTML = '<ul><li><br></li></ul>';
                 }
+            } else {
+                // 플레이스홀더가 없지만 완전히 빈 상태일 때도 처리
+                const content = this.textContent.trim();
+                if (!content || content === '') {
+                    if (field.inputId === 'requirements-note') {
+                        this.innerHTML = '<p><br></p>';
+                    } else {
+                        this.innerHTML = '<ul><li><br></li></ul>';
+                    }
+                }
             }
         });
         
@@ -758,6 +768,22 @@ function enableDirectEdit() {
         // 입력 시 왼쪽 입력란 실시간 동기화 및 히스토리 저장 (디바운스 적용)
         let inputTimeout;
         preview.addEventListener('input', function() {
+            // 완전히 비어있거나 공백만 있을 때 <br> 삽입 (엔터 키 작동을 위해)
+            const content = this.textContent.trim();
+            if (!content || content === '') {
+                // requirements-note는 단락 형식
+                if (field.inputId === 'requirements-note') {
+                    if (this.innerHTML === '' || this.innerHTML === '<br>') {
+                        this.innerHTML = '<p><br></p>';
+                    }
+                } else {
+                    // 리스트 형식
+                    if (this.innerHTML === '' || this.innerHTML === '<br>') {
+                        this.innerHTML = '<ul><li><br></li></ul>';
+                    }
+                }
+            }
+            
             // 왼쪽 textarea로 실시간 동기화
             syncToInput(field.inputId, field.previewId);
             
