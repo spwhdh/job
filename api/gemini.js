@@ -41,7 +41,7 @@ module.exports = async function handler(req, res) {
     console.log('API 키 길이:', GEMINI_API_KEY.length);
     console.log('API 키 시작 문자:', GEMINI_API_KEY.substring(0, 10) + '...');
 
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
     console.log('요청 URL (키 제외):', apiUrl.replace(/key=.+$/, 'key=***'));
 
     const requestBody = {
@@ -52,7 +52,7 @@ module.exports = async function handler(req, res) {
       }],
       generationConfig: {
         temperature: 0.7,
-        maxOutputTokens: 1024,
+        maxOutputTokens: 2048,
       }
     };
     console.log('요청 본문:', JSON.stringify(requestBody).substring(0, 200) + '...');
@@ -84,6 +84,16 @@ module.exports = async function handler(req, res) {
 
     const data = await response.json();
     
+    // 응답 상세 로그 (디버깅용)
+    if (data.candidates && data.candidates[0]) {
+      const candidate = data.candidates[0];
+      console.log('Gemini 응답 상세:', {
+        finishReason: candidate.finishReason,
+        index: candidate.index,
+        safetyRatings: candidate.safetyRatings
+      });
+    }
+
     // 응답에서 텍스트 추출
     if (data.candidates && data.candidates[0] && data.candidates[0].content) {
       const text = data.candidates[0].content.parts[0].text;
