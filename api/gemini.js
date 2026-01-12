@@ -2,6 +2,12 @@
 // API 키는 환경 변수에서 안전하게 가져옴
 
 export default async function handler(req, res) {
+  // #region agent log
+  const fs = require('fs');
+  const logPath = 'd:\\project\\job\\.cursor\\debug.log';
+  try { fs.appendFileSync(logPath, JSON.stringify({location:'api/gemini.js:7',message:'handler 진입',data:{method:req.method,hasBody:!!req.body},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'B,C'}) + '\n'); } catch(e) {}
+  // #endregion
+  
   // CORS 설정 (클라이언트에서 접근 허용)
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -20,6 +26,10 @@ export default async function handler(req, res) {
   // 환경 변수에서 API 키 가져오기 (코드에 직접 넣지 않음!)
   const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
   
+  // #region agent log
+  try { fs.appendFileSync(logPath, JSON.stringify({location:'api/gemini.js:31',message:'환경 변수 확인',data:{hasApiKey:!!GEMINI_API_KEY,apiKeyLength:GEMINI_API_KEY?.length},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'D'}) + '\n'); } catch(e) {}
+  // #endregion
+  
   if (!GEMINI_API_KEY) {
     console.error('GEMINI_API_KEY not configured');
     return res.status(500).json({ 
@@ -30,6 +40,10 @@ export default async function handler(req, res) {
 
   try {
     const { prompt, type } = req.body;
+    
+    // #region agent log
+    try { fs.appendFileSync(logPath, JSON.stringify({location:'api/gemini.js:44',message:'요청 본문 파싱',data:{hasPrompt:!!prompt,type:type,promptLength:prompt?.length},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'E'}) + '\n'); } catch(e) {}
+    // #endregion
     
     if (!prompt) {
       return res.status(400).json({ error: 'Prompt is required' });
