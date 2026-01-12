@@ -2271,8 +2271,9 @@ async function callGeminiAPI(prompt, type) {
 
         if (!response.ok) {
             const errorData = await response.json();
+            console.error('API 상세 오류 정보:', errorData);
             // #region agent log
-            fetch('http://127.0.0.1:7243/ingest/33d63ba5-a015-4de5-b517-0f74df54adfe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'editor-script.js:2268',message:'API error response',data:{error:errorData.error,message:errorData.message,status:response.status},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A,B,D'})}).catch(()=>{});
+            fetch('http://127.0.0.1:7243/ingest/33d63ba5-a015-4de5-b517-0f74df54adfe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'editor-script.js:2268',message:'API error response',data:{error:errorData.error,message:errorData.message,details:errorData.details,status:response.status},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A,B,D'})}).catch(()=>{});
             // #endregion
             throw new Error(errorData.error || 'API 호출 실패');
         }

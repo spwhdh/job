@@ -51,7 +51,7 @@ module.exports = async function handler(req, res) {
         }]
       }],
       tools: [{
-        google_search_retrieval: {}
+        google_search: {}
       }],
       generationConfig: {
         temperature: 0.7,
