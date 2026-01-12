@@ -2507,7 +2507,22 @@ async function generateWithAIAuto() {
 [최종 출력 체크리스트]
 [ ] 인삿말(안녕하십니까 등)이 포함되었는가? -> 포함 시 실패, 즉시 삭제
 [ ] 1번 제목부터 바로 시작하는가? -> YES
-[ ] 모든 문장이 글자 수 제한을 지켰는가? -> YES
+[ ] 모든 문장이 글자 수 제한을 지켰는가? -> YES`.trim();
+        
+        const userPrompt = description;
+        
+        const gemsPrompt = `
+${systemPrompt}
+[사용자 입력]
+- 부서: ${department}
+- 직무: ${jobTitle}
+- ai-description: ${userPrompt}
+
+[응답 지시]
+- 위 가이드를 그대로 따르고 인삿말 없이 작성합니다.
+- recommend=섹션 2, duties=섹션 3, requirements=섹션 4, preferred=섹션 5에 해당하는 내용을 작성합니다.
+- 각 값은 줄바꿈으로 구분된 문장 리스트이며 가이드의 줄 수/글자 수 제한을 지킵니다.
+- 반드시 순수 JSON만 반환합니다.
 
 {
   "recommend": "항목1\\n항목2\\n항목3",
@@ -2515,13 +2530,6 @@ async function generateWithAIAuto() {
   "requirements": "항목1\\n항목2\\n항목3",
   "preferred": "항목1\\n항목2\\n항목3"
 }`.trim();
-        
-        const userPrompt = description;
-        
-        const gemsPrompt = `
-${systemPrompt}
- ${userPrompt}
-        `;
         
         // === Gemini API 호출 ===
         // #region agent log
