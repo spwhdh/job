@@ -2429,3 +2429,241 @@ function showToast(message, duration = 2000) {
     }, duration);
 }
 
+// ============ AI 자동 작성 기능 ============
+
+// AI 자동 생성 (GEMS 연결 대기)
+async function generateWithAIAuto() {
+    const descriptionInput = document.getElementById('ai-description');
+    const description = descriptionInput.value.trim();
+    
+    // 입력 확인
+    if (!description) {
+        alert('⚠️ 어떤 공고를 만들고 싶은지 설명을 입력해주세요.');
+        descriptionInput.focus();
+        return;
+    }
+    
+    // 버튼 비활성화 및 로딩 표시
+    const button = document.querySelector('.ai-generate-main-btn');
+    const originalText = button.textContent;
+    button.disabled = true;
+    button.textContent = '⏳ AI 생성 중...';
+    
+    try {
+        // 부서와 공고 제목 가져오기
+        const department = document.getElementById('department').value || '회사';
+        const jobTitle = document.getElementById('job-title').value || '직원';
+        
+        // === GEMS 프롬프트 생성 ===
+        const gemsPrompt = `
+[GEMS 페르소나]
+너는 성장에 미친 '몰입형 조직'의 채용 시스템이다. 감성적인 인삿말이나 군더더기는 생략하고, 오직 비즈니스 성공에 헌신할 인재를 가려내는 날카로운 JD 텍스트만 생성한다.
+
+[섹션별 세부 가이드]
+
+2. 이런 분들에게 추천합니다
+- 형식: 8~10줄 (줄당 공백 포함 100자 이내).
+- 내용: 회사의 성공을 위해 주말/저녁 몰입이 가능하며, 기술로 한계를 돌파할 헌신적 태도 강조.
+- 직무별 특화 문구:
+  * 공통: "회사의 성공 안에서 개인의 성공을 꿈꾸며, 이를 위해 저녁과 주말도 업무에 몰입하실 분"
+  * 공통: "문제가 어디에 있든 스스로 원인을 정의하고 해결책이 반영될 때까지 끝까지 책임지는 분"
+  * 개발: "AI 바이브코딩으로 개발 속도와 품질을 극단적으로 끌어올려 비즈니스 임팩트를 만드실 분"
+  * 인사: "단순 관리자가 아닌 AI 시대 사람과 기술을 연결하며 회사의 성장을 설계할 HR 혁신가"
+  * 마케팅: "데이터의 헛점을 파악하고 구매 전환을 위해 수단과 방법을 가리지 않고 숫자를 증명할 분"
+  * 공통: "부족한 역량이 있다면 업무 시간 안팎을 가리지 않고 학습하여 조직의 속도를 앞지를 분"
+
+3. 담당 업무
+- 형식: 7줄 미만 (줄당 공백 포함 70자 이내).
+- 내용: '관리'가 아닌 '설계/구축/성과 견인' 등 결과 중심의 실무 미션.
+
+4. 필수 자격
+- 형식: 7줄 미만 (줄당 공백 포함 70자 이내).
+- 우선순위: 경력 기간 명시 시 반드시 첫 번째 줄 배치.
+
+5. 우대사항
+- 형식: 7줄 미만 (줄당 공백 포함 70자 이내).
+- 내용: 단순 툴 숙련도가 아닌, 기술/스택을 도구로 비즈니스 가치를 창출한 경험.
+
+[최종 출력 체크리스트]
+- 인삿말(안녕하십니까 등) 절대 금지
+- 모든 문장이 글자 수 제한 준수
+
+---
+
+[사용자 요청]
+부서: ${department}
+직무: ${jobTitle}
+설명: ${description}
+
+---
+
+위 GEMS 지침에 따라 아래 4개 섹션을 생성하세요.
+
+**중요: 반드시 순수한 JSON 형식으로만 응답하세요. 마크다운 코드 블록(백틱) 사용 금지.**
+
+{
+  "recommend": "항목1\\n항목2\\n항목3\\n항목4\\n항목5\\n항목6\\n항목7\\n항목8",
+  "duties": "항목1\\n항목2\\n항목3\\n항목4\\n항목5",
+  "requirements": "항목1\\n항목2\\n항목3\\n항목4\\n항목5",
+  "preferred": "항목1\\n항목2\\n항목3\\n항목4\\n항목5"
+}
+
+각 항목은 줄바꿈(\\n)으로 구분하고, JSON 외 다른 텍스트는 포함하지 마세요.
+        `;
+        
+        // === Gemini API 호출 ===
+        console.log('🤖 GEMS 프롬프트 전송 중...');
+        const rawResponse = await callGeminiAPI(gemsPrompt, 'ai-auto-generate');
+        console.log('✅ Gemini 응답 받음:', rawResponse.substring(0, 100) + '...');
+        
+        // === JSON 파싱 (마크다운 제거) ===
+        let result;
+        try {
+            // 1차: 마크다운 코드 블록 제거
+            let cleanedResponse = rawResponse
+                .replace(/```json\n?/gi, '')
+                .replace(/```\n?/g, '')
+                .trim();
+            
+            // 2차: JSON 객체만 추출
+            const jsonMatch = cleanedResponse.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+                result = JSON.parse(jsonMatch[0]);
+            } else {
+                throw new Error('JSON 객체를 찾을 수 없습니다.');
+            }
+            
+            console.log('✅ JSON 파싱 성공:', Object.keys(result));
+            
+        } catch (parseError) {
+            console.error('❌ JSON 파싱 실패:', parseError);
+            console.error('원본 응답:', rawResponse);
+            throw new Error('AI 응답을 JSON으로 변환할 수 없습니다. 다시 시도해주세요.');
+        }
+        
+        // === 결과 검증 ===
+        const requiredFields = ['recommend', 'duties', 'requirements', 'preferred'];
+        const missingFields = requiredFields.filter(field => !result[field]);
+        
+        if (missingFields.length > 0) {
+            console.error('❌ 누락된 필드:', missingFields);
+            throw new Error(`응답에 필수 항목이 누락되었습니다: ${missingFields.join(', ')}`);
+        }
+        
+        // === 결과를 화면에 표시 ===
+        displayAIResult(result);
+        
+        // 버튼 복원
+        button.textContent = '✅ 생성 완료!';
+        setTimeout(() => {
+            button.textContent = originalText;
+            button.disabled = false;
+        }, 2000);
+        
+        showToast('✅ GEMS AI 생성이 완료되었습니다!');
+        console.log('🎉 GEMS 생성 완료');
+        
+    } catch (error) {
+        console.error('AI 생성 실패:', error);
+        alert('❌ AI 생성에 실패했습니다.\n\n' + error.message);
+        
+        // 버튼 복원
+        button.textContent = originalText;
+        button.disabled = false;
+    }
+}
+
+// AI 결과를 화면에 표시
+function displayAIResult(result) {
+    const container = document.getElementById('aiResultContainer');
+    
+    // 각 섹션에 결과 표시
+    document.getElementById('aiRecommend').innerHTML = formatResultAsHTML(result.recommend);
+    document.getElementById('aiDuties').innerHTML = formatResultAsHTML(result.duties);
+    document.getElementById('aiRequirements').innerHTML = formatResultAsHTML(result.requirements);
+    document.getElementById('aiPreferred').innerHTML = formatResultAsHTML(result.preferred);
+    
+    // 컨테이너 표시
+    container.style.display = 'block';
+    
+    // 결과 영역으로 부드럽게 스크롤
+    setTimeout(() => {
+        container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 100);
+}
+
+// 텍스트를 HTML 리스트로 변환
+function formatResultAsHTML(text) {
+    const lines = text.split('\n').filter(line => line.trim() !== '');
+    
+    if (lines.length === 0) {
+        return '<p style="color: #8F959E;">내용이 없습니다.</p>';
+    }
+    
+    let html = '<ul>';
+    lines.forEach(line => {
+        html += `<li>${escapeHtml(line.trim())}</li>`;
+    });
+    html += '</ul>';
+    
+    return html;
+}
+
+// AI 결과를 입력 폼에 적용
+function applyAIResult() {
+    // 확인 메시지
+    if (!confirm('AI가 생성한 내용을 입력란에 적용하시겠습니까?\n\n현재 입력된 내용이 덮어씌워집니다.')) {
+        return;
+    }
+    
+    // 각 섹션의 내용 가져오기
+    const recommend = getTextFromResultSection('aiRecommend');
+    const duties = getTextFromResultSection('aiDuties');
+    const requirements = getTextFromResultSection('aiRequirements');
+    const preferred = getTextFromResultSection('aiPreferred');
+    
+    // 입력 폼에 적용
+    document.getElementById('recommend').value = recommend;
+    document.getElementById('duties').value = duties;
+    document.getElementById('requirements').value = requirements;
+    document.getElementById('preferred').value = preferred;
+    
+    // 미리보기 업데이트
+    updatePreview('recommend');
+    updatePreview('duties');
+    updatePreview('requirements');
+    updatePreview('preferred');
+    
+    // 로컬 스토리지 저장
+    localStorage.setItem('recommend', recommend);
+    localStorage.setItem('duties', duties);
+    localStorage.setItem('requirements', requirements);
+    localStorage.setItem('preferred', preferred);
+    
+    // 성공 메시지
+    showToast('✅ AI 내용이 적용되었습니다!');
+    
+    // 히스토리 저장
+    setTimeout(() => {
+        saveHistoryState();
+    }, 100);
+    
+    console.log('✅ AI 결과 적용 완료');
+}
+
+// 결과 섹션에서 텍스트 추출
+function getTextFromResultSection(sectionId) {
+    const section = document.getElementById(sectionId);
+    if (!section) return '';
+    
+    const items = section.querySelectorAll('li');
+    const lines = [];
+    
+    items.forEach(item => {
+        const text = item.textContent.trim();
+        if (text) lines.push(text);
+    });
+    
+    return lines.join('\n');
+}
+

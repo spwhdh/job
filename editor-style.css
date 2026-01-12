@@ -1646,3 +1646,214 @@ body {
     bottom: 30px;
 }
 
+/* ============ AI 자동 작성 섹션 ============ */
+.ai-auto-section {
+    background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+    border: 2px solid #667eea;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+}
+
+.ai-auto-section:hover {
+    border-color: #764ba2;
+    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.25);
+}
+
+.ai-auto-section .label-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #667eea;
+}
+
+.ai-auto-section .label-subtitle {
+    display: block;
+    font-size: 13px;
+    color: #646A73;
+    font-weight: 400;
+    margin-top: 4px;
+}
+
+.ai-input-container {
+    margin-bottom: 12px;
+}
+
+.ai-input-container textarea {
+    width: 100%;
+    padding: 14px 16px;
+    border: 2px solid #E5E6EB;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    line-height: 1.6;
+    resize: vertical;
+    transition: all 0.2s ease;
+    background: white;
+    min-height: 80px;
+}
+
+.ai-input-container textarea:hover {
+    border-color: #667eea;
+}
+
+.ai-input-container textarea:focus {
+    outline: none;
+    border-color: #667eea;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+}
+
+.ai-input-container textarea::placeholder {
+    color: #8F959E;
+}
+
+/* AI 작성 버튼 (메인) */
+.ai-generate-main-btn {
+    width: 100%;
+    padding: 14px 24px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    margin-bottom: 16px;
+}
+
+.ai-generate-main-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.6);
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+}
+
+.ai-generate-main-btn:active {
+    transform: translateY(0);
+}
+
+.ai-generate-main-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* AI 결과 컨테이너 */
+.ai-result-container {
+    margin-top: 16px;
+    border: 2px solid #667eea;
+    border-radius: 10px;
+    padding: 16px;
+    background: white;
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.ai-result-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #E5E6EB;
+}
+
+.ai-result-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #667eea;
+}
+
+/* AI 내용 적용 버튼 */
+.ai-apply-btn {
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #00C853 0%, #00A844 100%);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 200, 83, 0.3);
+}
+
+.ai-apply-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 200, 83, 0.5);
+}
+
+.ai-apply-btn:active {
+    transform: translateY(0);
+}
+
+/* AI 결과 섹션들 */
+.ai-result-content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.ai-result-section {
+    background: #FAFBFC;
+    border: 1px solid #E5E6EB;
+    border-radius: 8px;
+    padding: 14px;
+    transition: all 0.2s ease;
+}
+
+.ai-result-section:hover {
+    background: white;
+    border-color: #667eea;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
+}
+
+.ai-result-section-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1F2329;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #E5E6EB;
+}
+
+.ai-result-section-content {
+    font-size: 13px;
+    color: #333333;
+    line-height: 1.8;
+}
+
+.ai-result-section-content ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.ai-result-section-content li {
+    position: relative;
+    padding-left: 18px;
+    margin-bottom: 6px;
+    color: #333333;
+}
+
+.ai-result-section-content li:last-child {
+    margin-bottom: 0;
+}
+
+.ai-result-section-content li::before {
+    content: '•';
+    position: absolute;
+    left: 0;
+    color: #667eea;
+    font-weight: bold;
+}
+

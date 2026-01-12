@@ -83,6 +83,56 @@
                     </div>
                 </div>
 
+                <!-- AI 자동 작성 섹션 -->
+                <div class="form-section ai-auto-section">
+                    <label>
+                        <span class="label-title">🤖 AI 자동 작성</span>
+                        <span class="label-subtitle">어떤 공고를 만들고 싶은지 설명하면 AI가 자동으로 내용을 생성합니다</span>
+                    </label>
+                    
+                    <!-- 입력란 -->
+                    <div class="ai-input-container">
+                        <textarea id="ai-description" rows="3" spellcheck="false" placeholder="예시: 백엔드 개발자를 채용합니다. Node.js와 MongoDB 경험이 있는 분을 찾습니다."></textarea>
+                    </div>
+                    
+                    <!-- AI 작성 버튼 -->
+                    <button class="ai-generate-main-btn" onclick="generateWithAIAuto()">✨ AI 작성</button>
+                    
+                    <!-- 결과 표시 영역 -->
+                    <div class="ai-result-container" id="aiResultContainer" style="display: none;">
+                        <div class="ai-result-header">
+                            <span class="ai-result-title">✅ AI 생성 결과</span>
+                            <button class="ai-apply-btn" onclick="applyAIResult()">📝 AI 내용 적용</button>
+                        </div>
+                        
+                        <div class="ai-result-content">
+                            <!-- 이런분들에게 추천합니다 -->
+                            <div class="ai-result-section">
+                                <div class="ai-result-section-title">✅ 이런분들에게 추천합니다</div>
+                                <div class="ai-result-section-content" id="aiRecommend"></div>
+                            </div>
+                            
+                            <!-- 담당 업무 -->
+                            <div class="ai-result-section">
+                                <div class="ai-result-section-title">⚙️ 담당 업무</div>
+                                <div class="ai-result-section-content" id="aiDuties"></div>
+                            </div>
+                            
+                            <!-- 필수 자격 -->
+                            <div class="ai-result-section">
+                                <div class="ai-result-section-title">📋 필수 자격</div>
+                                <div class="ai-result-section-content" id="aiRequirements"></div>
+                            </div>
+                            
+                            <!-- 우대 사항 -->
+                            <div class="ai-result-section">
+                                <div class="ai-result-section-title">🌟 우대 사항</div>
+                                <div class="ai-result-section-content" id="aiPreferred"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="form-section">
                     <label>
                         <span class="label-title">🖊️공고 정보</span>
