@@ -2249,10 +2249,6 @@ window.addEventListener('load', () => {
 // Gemini API 호출 함수
 async function callGeminiAPI(prompt, type) {
     try {
-        // #region agent log
-        fetch('http://127.0.0.1:7243/ingest/33d63ba5-a015-4de5-b517-0f74df54adfe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'editor-script.js:2250',message:'callGeminiAPI 시작',data:{type:type,promptLength:prompt.length,url:'/api/gemini'},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A,E'})}).catch(()=>{});
-        // #endregion
-        
         console.log('🤖 Gemini API 호출 시작:', type);
         
         const response = await fetch('/api/gemini', {
@@ -2266,14 +2262,7 @@ async function callGeminiAPI(prompt, type) {
             })
         });
 
-        // #region agent log
-        fetch('http://127.0.0.1:7243/ingest/33d63ba5-a015-4de5-b517-0f74df54adfe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'editor-script.js:2265',message:'fetch 응답 받음',data:{status:response.status,ok:response.ok,statusText:response.statusText},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A,C'})}).catch(()=>{});
-        // #endregion
-
         if (!response.ok) {
-            // #region agent log
-            fetch('http://127.0.0.1:7243/ingest/33d63ba5-a015-4de5-b517-0f74df54adfe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'editor-script.js:2266',message:'응답 에러 발생',data:{status:response.status},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A,B,C,D'})}).catch(()=>{});
-            // #endregion
             const errorData = await response.json();
             throw new Error(errorData.error || 'API 호출 실패');
         }

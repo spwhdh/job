@@ -2,7 +2,6 @@
   "name": "job-posting-tool",
   "version": "1.0.0",
   "description": "채용공고 제작 도구",
-  "type": "module",
   "scripts": {
     "dev": "vercel dev",
     "deploy": "vercel"
