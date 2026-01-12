@@ -37,9 +37,9 @@ module.exports = async function handler(req, res) {
 
     console.log('Gemini API 호출:', { type, promptLength: prompt.length });
 
-    // Gemini API 호출 (안정적인 1.5 Flash 모델 사용)
+    // Gemini API 호출 (최신 2.5 Flash 모델 사용)
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
       {
         method: 'POST',
         headers: {
