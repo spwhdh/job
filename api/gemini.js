@@ -37,32 +37,49 @@ module.exports = async function handler(req, res) {
 
     console.log('Gemini API 호출:', { type, promptLength: prompt.length });
 
-    // Gemini API 호출 (최신 2.5 Flash 모델 사용)
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          contents: [{
-            parts: [{
-              text: prompt
-            }]
-          }],
-          generationConfig: {
-            temperature: 0.7,
-            maxOutputTokens: 1024,
-          }
-        })
+    // API 키 길이 확인 (실제 키는 로그에 출력 안 함)
+    console.log('API 키 길이:', GEMINI_API_KEY.length);
+    console.log('API 키 시작 문자:', GEMINI_API_KEY.substring(0, 10) + '...');
+
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+    console.log('요청 URL (키 제외):', apiUrl.replace(/key=.+$/, 'key=***'));
+
+    const requestBody = {
+      contents: [{
+        parts: [{
+          text: prompt
+        }]
+      }],
+      generationConfig: {
+        temperature: 0.7,
+        maxOutputTokens: 1024,
       }
-    );
+    };
+    console.log('요청 본문:', JSON.stringify(requestBody).substring(0, 200) + '...');
+
+    // Gemini API 호출 (Gemini 1.5 Flash 모델 사용)
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestBody)
+    });
+
+    console.log('응답 상태:', response.status, response.statusText);
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Gemini API error:', response.status, errorText);
-      throw new Error(`Gemini API error: ${response.status}`);
+      console.error('Gemini API 전체 오류 응답:', errorText);
+      console.error('응답 헤더:', JSON.stringify([...response.headers.entries()]));
+      
+      // 더 자세한 오류 정보 반환
+      return res.status(500).json({ 
+        error: `Gemini API error: ${response.status}`,
+        details: errorText,
+        statusCode: response.status,
+        statusText: response.statusText
+      });
     }
 
     const data = await response.json();

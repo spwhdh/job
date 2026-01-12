@@ -2249,34 +2249,51 @@ window.addEventListener('load', () => {
 // Gemini API 호출 함수
 async function callGeminiAPI(prompt, type) {
     try {
+        // #region agent log
+        fetch('http://127.0.0.1:7243/ingest/33d63ba5-a015-4de5-b517-0f74df54adfe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'editor-script.js:2250',message:'callGeminiAPI started',data:{type:type,promptLength:prompt.length},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A,B,C'})}).catch(()=>{});
+        // #endregion
         console.log('🤖 Gemini API 호출 시작:', type);
-        
+
         const response = await fetch('/api/gemini', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ 
+            body: JSON.stringify({
                 prompt: prompt,
-                type: type 
+                type: type
             })
         });
 
+        // #region agent log
+        fetch('http://127.0.0.1:7243/ingest/33d63ba5-a015-4de5-b517-0f74df54adfe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'editor-script.js:2265',message:'fetch response received',data:{ok:response.ok,status:response.status,statusText:response.statusText},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'B,C'})}).catch(()=>{});
+        // #endregion
+
         if (!response.ok) {
             const errorData = await response.json();
+            // #region agent log
+            fetch('http://127.0.0.1:7243/ingest/33d63ba5-a015-4de5-b517-0f74df54adfe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'editor-script.js:2268',message:'API error response',data:{error:errorData.error,message:errorData.message,status:response.status},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A,B,D'})}).catch(()=>{});
+            // #endregion
             throw new Error(errorData.error || 'API 호출 실패');
         }
 
         const data = await response.json();
-        
+
+        // #region agent log
+        fetch('http://127.0.0.1:7243/ingest/33d63ba5-a015-4de5-b517-0f74df54adfe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'editor-script.js:2272',message:'API response parsed',data:{success:data.success,hasText:!!data.text,textLength:data.text?.length||0},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'D'})}).catch(()=>{});
+        // #endregion
+
         if (data.success && data.text) {
             console.log('✅ Gemini API 성공');
             return data.text;
         } else {
             throw new Error('응답 형식이 올바르지 않습니다.');
         }
-        
+
     } catch (error) {
+        // #region agent log
+        fetch('http://127.0.0.1:7243/ingest/33d63ba5-a015-4de5-b517-0f74df54adfe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'editor-script.js:2280',message:'callGeminiAPI error caught',data:{errorName:error.name,errorMessage:error.message,errorStack:error.stack?.substring(0,200)},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A,B,C,D'})}).catch(()=>{});
+        // #endregion
         console.error('❌ Gemini API 오류:', error);
         throw error;
     }
@@ -2512,8 +2529,14 @@ async function generateWithAIAuto() {
         `;
         
         // === Gemini API 호출 ===
+        // #region agent log
+        fetch('http://127.0.0.1:7243/ingest/33d63ba5-a015-4de5-b517-0f74df54adfe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'editor-script.js:2515',message:'before callGeminiAPI',data:{promptLength:gemsPrompt.length,department:department,jobTitle:jobTitle},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A,B,C'})}).catch(()=>{});
+        // #endregion
         console.log('🤖 GEMS 프롬프트 전송 중...');
         const rawResponse = await callGeminiAPI(gemsPrompt, 'ai-auto-generate');
+        // #region agent log
+        fetch('http://127.0.0.1:7243/ingest/33d63ba5-a015-4de5-b517-0f74df54adfe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'editor-script.js:2517',message:'after callGeminiAPI',data:{responseLength:rawResponse.length,responsePreview:rawResponse.substring(0,200)},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'D,E'})}).catch(()=>{});
+        // #endregion
         console.log('✅ Gemini 응답 받음:', rawResponse.substring(0, 100) + '...');
         
         // === JSON 파싱 (마크다운 제거) ===
@@ -2525,17 +2548,30 @@ async function generateWithAIAuto() {
                 .replace(/```\n?/g, '')
                 .trim();
             
+            // #region agent log
+            fetch('http://127.0.0.1:7243/ingest/33d63ba5-a015-4de5-b517-0f74df54adfe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'editor-script.js:2526',message:'after markdown removal',data:{cleanedLength:cleanedResponse.length,cleanedPreview:cleanedResponse.substring(0,200)},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'E'})}).catch(()=>{});
+            // #endregion
+            
             // 2차: JSON 객체만 추출
             const jsonMatch = cleanedResponse.match(/\{[\s\S]*\}/);
             if (jsonMatch) {
                 result = JSON.parse(jsonMatch[0]);
             } else {
+                // #region agent log
+                fetch('http://127.0.0.1:7243/ingest/33d63ba5-a015-4de5-b517-0f74df54adfe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'editor-script.js:2533',message:'JSON match failed',data:{cleanedResponse:cleanedResponse.substring(0,500)},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'E'})}).catch(()=>{});
+                // #endregion
                 throw new Error('JSON 객체를 찾을 수 없습니다.');
             }
             
+            // #region agent log
+            fetch('http://127.0.0.1:7243/ingest/33d63ba5-a015-4de5-b517-0f74df54adfe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'editor-script.js:2536',message:'JSON parse success',data:{resultKeys:Object.keys(result)},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'E'})}).catch(()=>{});
+            // #endregion
             console.log('✅ JSON 파싱 성공:', Object.keys(result));
             
         } catch (parseError) {
+            // #region agent log
+            fetch('http://127.0.0.1:7243/ingest/33d63ba5-a015-4de5-b517-0f74df54adfe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'editor-script.js:2539',message:'JSON parse error',data:{errorMessage:parseError.message,rawResponse:rawResponse.substring(0,500)},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'E'})}).catch(()=>{});
+            // #endregion
             console.error('❌ JSON 파싱 실패:', parseError);
             console.error('원본 응답:', rawResponse);
             throw new Error('AI 응답을 JSON으로 변환할 수 없습니다. 다시 시도해주세요.');
