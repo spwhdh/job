@@ -50,9 +50,6 @@ module.exports = async function handler(req, res) {
           text: prompt
         }]
       }],
-      tools: [{
-        google_search: {}
-      }],
       generationConfig: {
         temperature: 0.7,
         maxOutputTokens: 2048,
