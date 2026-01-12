@@ -41,7 +41,7 @@ module.exports = async function handler(req, res) {
     console.log('API 키 길이:', GEMINI_API_KEY.length);
     console.log('API 키 시작 문자:', GEMINI_API_KEY.substring(0, 10) + '...');
 
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
     console.log('요청 URL (키 제외):', apiUrl.replace(/key=.+$/, 'key=***'));
 
     const requestBody = {
