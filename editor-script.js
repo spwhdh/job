@@ -2563,7 +2563,8 @@ ${systemPrompt}
                 // #region agent log
                 fetch('http://127.0.0.1:7243/ingest/33d63ba5-a015-4de5-b517-0f74df54adfe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'editor-script.js:2533',message:'JSON match failed',data:{cleanedResponse:cleanedResponse.substring(0,500)},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'E'})}).catch(()=>{});
                 // #endregion
-                throw new Error('JSON 객체를 찾을 수 없습니다.');
+                const preview = cleanedResponse.substring(0, 200);
+                throw new Error(`AI가 준 내용이 약속한 형태가 아니에요. 확인용 내용: ${preview}`);
             }
             
             // #region agent log
@@ -2577,7 +2578,8 @@ ${systemPrompt}
             // #endregion
             console.error('❌ JSON 파싱 실패:', parseError);
             console.error('원본 응답:', rawResponse);
-            throw new Error('AI 응답을 JSON으로 변환할 수 없습니다. 다시 시도해주세요.');
+            const preview = rawResponse ? rawResponse.replace(/\s+/g, ' ').trim().substring(0, 300) : '응답이 비어 있습니다';
+            throw new Error(`AI가 보낸 내용을 읽지 못했습니다. 확인용 내용: ${preview}`);
         }
         
         // === 결과 검증 ===
