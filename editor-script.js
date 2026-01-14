@@ -2606,6 +2606,7 @@ ${systemPrompt}
         
     } catch (error) {
         console.error('AI 생성 실패:', error);
+        console.error('알림에 표기될 오류 메시지:', error?.message);
         alert('❌ AI 생성에 실패했습니다.\n\n' + error.message);
         
         // 버튼 복원
